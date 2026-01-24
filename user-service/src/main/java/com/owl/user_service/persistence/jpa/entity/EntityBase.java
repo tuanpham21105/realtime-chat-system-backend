@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 
 public abstract class EntityBase<T> {
 
-    @SuppressWarnings("unchecked")
     public void copyFrom(T source) {
         if (source == null) {
             throw new IllegalArgumentException("Source must not be null");
