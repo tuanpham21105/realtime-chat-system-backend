@@ -1,6 +1,7 @@
 package com.owl.chat_service.application.service.admin.chat;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -8,26 +9,33 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.owl.chat_service.application.service.admin.chat_member.ControlChatMemberAdminSerivces;
+import com.owl.chat_service.application.service.admin.chat_member.GetChatMemberAdminServices;
 import com.owl.chat_service.domain.chat.service.ChatServices;
 import com.owl.chat_service.domain.chat.validate.ChatValidate;
+import com.owl.chat_service.external_service.client.BlockUserServiceApiClient;
 import com.owl.chat_service.persistence.mongodb.document.Chat;
 import com.owl.chat_service.persistence.mongodb.document.Message;
 import com.owl.chat_service.persistence.mongodb.document.Chat.ChatType;
+import com.owl.chat_service.persistence.mongodb.document.ChatMember;
 import com.owl.chat_service.persistence.mongodb.repository.ChatRepository;
 import com.owl.chat_service.presentation.dto.admin.ChatAdminRequest;
 
 @Service
 @Transactional
 public class ControlChatAdminServices {
-
     private final ControlChatMemberAdminSerivces controlChatMemberAdminSerivces;
     private final GetChatAdminServices getChatAdminServices;
     private final ChatRepository chatRepository;
+    private final GetChatMemberAdminServices getChatMemberAdminServices;
+    private final BlockUserServiceApiClient blockUserServiceApiClient;
 
-    public ControlChatAdminServices(ChatRepository chatRepository, GetChatAdminServices getChatAdminServices, ControlChatMemberAdminSerivces controlChatMemberAdminSerivces) {
+    public ControlChatAdminServices(ChatRepository chatRepository, GetChatAdminServices getChatAdminServices, ControlChatMemberAdminSerivces controlChatMemberAdminSerivces, BlockUserServiceApiClient blockUserServiceApiClient, GetChatMemberAdminServices getChatMemberAdminServices) {
         this.getChatAdminServices = getChatAdminServices;
         this.chatRepository = chatRepository;
-        this.controlChatMemberAdminSerivces = controlChatMemberAdminSerivces;}
+        this.controlChatMemberAdminSerivces = controlChatMemberAdminSerivces;
+        this.getChatMemberAdminServices = getChatMemberAdminServices;
+        this.blockUserServiceApiClient = blockUserServiceApiClient;
+    }
 
     public Chat addNewChat(ChatAdminRequest chatRequest) {
         Chat newChat = new Chat();
@@ -61,7 +69,21 @@ public class ControlChatAdminServices {
 
         if (!existingChat.getStatus())
             throw new IllegalArgumentException("Chat have been removed");
-        
+
+        if (existingChat.getType() == ChatType.PRIVATE) {
+            List<ChatMember> chatMembers = getChatMemberAdminServices.getChatMembersByChatId(existingChat.getId(), -1, 10, false);
+
+            if (chatMembers == null || chatMembers.size() < 2) {
+                throw new IllegalArgumentException("Private chat must have two members");
+            }
+
+            String userA = chatMembers.get(0).getMemberId();
+            String userB = chatMembers.get(1).getMemberId();
+
+            if (blockUserServiceApiClient.getUserBlockUser(userA, userB) != null || blockUserServiceApiClient.getUserBlockUser(userB, userA) != null) {
+                throw new IllegalArgumentException("Chat members have blocked each other");
+            }
+        }
 
         String normalizedType = chatRequest.type.trim().toUpperCase();
         if (!ChatValidate.validateType(normalizedType)) 
@@ -87,6 +109,21 @@ public class ControlChatAdminServices {
         if (existingChat == null) 
             throw new IllegalArgumentException("Chat does not exists");
 
+        if (existingChat.getType() == ChatType.PRIVATE) {
+            List<ChatMember> chatMembers = getChatMemberAdminServices.getChatMembersByChatId(existingChat.getId(), -1, 10, false);
+
+            if (chatMembers == null || chatMembers.size() < 2) {
+                throw new IllegalArgumentException("Private chat must have two members");
+            }
+
+            String userA = chatMembers.get(0).getMemberId();
+            String userB = chatMembers.get(1).getMemberId();
+
+            if (blockUserServiceApiClient.getUserBlockUser(userA, userB) != null || blockUserServiceApiClient.getUserBlockUser(userB, userA) != null) {
+                throw new IllegalArgumentException("Chat members have blocked each other");
+            }
+        }
+
         existingChat.setStatus(status);
         existingChat.setUpdatedDate(Instant.now());
 
@@ -104,6 +141,21 @@ public class ControlChatAdminServices {
 
         if (!existingChat.getStatus())
             throw new IllegalArgumentException("Chat have been removed");
+
+        if (existingChat.getType() == ChatType.PRIVATE) {
+            List<ChatMember> chatMembers = getChatMemberAdminServices.getChatMembersByChatId(existingChat.getId(), -1, 10, false);
+
+            if (chatMembers == null || chatMembers.size() < 2) {
+                throw new IllegalArgumentException("Private chat must have two members");
+            }
+
+            String userA = chatMembers.get(0).getMemberId();
+            String userB = chatMembers.get(1).getMemberId();
+
+            if (blockUserServiceApiClient.getUserBlockUser(userA, userB) != null || blockUserServiceApiClient.getUserBlockUser(userB, userA) != null) {
+                throw new IllegalArgumentException("Chat members have blocked each other");
+            }
+        }
 
         updateChatStatus(chatId, false);
 
@@ -163,6 +215,21 @@ public class ControlChatAdminServices {
 
         if (!existingChat.getStatus())
             throw new IllegalArgumentException("Chat have been removed");
+
+        if (existingChat.getType() == ChatType.PRIVATE) {
+            List<ChatMember> chatMembers = getChatMemberAdminServices.getChatMembersByChatId(existingChat.getId(), -1, 10, false);
+
+            if (chatMembers == null || chatMembers.size() < 2) {
+                throw new IllegalArgumentException("Private chat must have two members");
+            }
+
+            String userA = chatMembers.get(0).getMemberId();
+            String userB = chatMembers.get(1).getMemberId();
+
+            if (blockUserServiceApiClient.getUserBlockUser(userA, userB) != null || blockUserServiceApiClient.getUserBlockUser(userB, userA) != null) {
+                throw new IllegalArgumentException("Chat members have blocked each other");
+            }
+        }
 
         ChatValidate.validateAvatarFileMetaData(file);
 
