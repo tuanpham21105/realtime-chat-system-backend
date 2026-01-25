@@ -9,9 +9,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.owl.chat_service.application.service.admin.chat.ControlChatAdminServices;
 import com.owl.chat_service.application.service.admin.chat.GetChatAdminServices;
+import com.owl.chat_service.application.service.admin.chat_member.GetChatMemberAdminServices;
+import com.owl.chat_service.domain.chat.service.ChatMemberServices;
 import com.owl.chat_service.domain.chat.service.MessageServices;
 import com.owl.chat_service.domain.chat.validate.MessageValidate;
+import com.owl.chat_service.external_service.client.UserServiceApiClient;
+import com.owl.chat_service.persistence.mongodb.document.Chat;
+import com.owl.chat_service.persistence.mongodb.document.ChatMember;
 import com.owl.chat_service.persistence.mongodb.document.Message;
+import com.owl.chat_service.persistence.mongodb.document.ChatMember.ChatMemberRole;
 import com.owl.chat_service.persistence.mongodb.document.Message.MessageState;
 import com.owl.chat_service.persistence.mongodb.document.Message.MessageType;
 import com.owl.chat_service.persistence.mongodb.repository.MessageRepository;
@@ -25,12 +31,16 @@ public class ControlMessageAdminServices {
     private final GetChatAdminServices getChatAdminServices;
     private final GetMessageAdminServices getMessageAdminServices;
     private final ControlChatAdminServices controlChatAdminService;
+    private final GetChatMemberAdminServices getChatMemberAdminServices;
+    private final UserServiceApiClient userServiceApiClient;
 
-    public ControlMessageAdminServices(MessageRepository messageRepository, GetChatAdminServices getChatAdminServices, GetMessageAdminServices getMessageAdminServices, ControlChatAdminServices controlChatAdminService) {
+    public ControlMessageAdminServices(MessageRepository messageRepository, GetChatAdminServices getChatAdminServices, GetMessageAdminServices getMessageAdminServices, ControlChatAdminServices controlChatAdminService, GetChatMemberAdminServices getChatMemberAdminServices, UserServiceApiClient userServiceApiClient) {
         this.messageRepository = messageRepository;
         this.getChatAdminServices = getChatAdminServices;
         this.getMessageAdminServices = getMessageAdminServices;
         this.controlChatAdminService = controlChatAdminService;
+        this.getChatMemberAdminServices = getChatMemberAdminServices;
+        this.userServiceApiClient = userServiceApiClient;
     }
 
     public Message addNewTextMessage(TextMessageAdminRequest textMessageRequest) {
@@ -38,13 +48,32 @@ public class ControlMessageAdminServices {
             throw new IllegalArgumentException("Invalid sender id");
         }
 
+        try {
+            if (userServiceApiClient.getUserById(textMessageRequest.senderId) == null) 
+                throw new IllegalArgumentException("Sender not found");
+        }
+        catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+
         if (!MessageValidate.validateChatId(textMessageRequest.chatId)) {
             throw new IllegalArgumentException("Invalid chat id");
         }
 
-        if (getChatAdminServices.getChatById(textMessageRequest.chatId) == null) {
+        Chat exitstingChat = getChatAdminServices.getChatById(textMessageRequest.chatId);
+        if (exitstingChat == null) {
             throw new IllegalArgumentException("Chat does not exists");
         }
+
+        if (!exitstingChat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
+
+        ChatMember chatMember = getChatMemberAdminServices.getChatMemberByChatIdAndMemberId(textMessageRequest.chatId, textMessageRequest.senderId);
+        if (chatMember == null) 
+            throw new SecurityException("Sender does not have permission to access this chat");
+
+        if (ChatMemberServices.compareRole(chatMember.getRole(), ChatMemberRole.MEMBER) < 0)
+            throw new SecurityException("Sender does not have permission to send message in this chat");
 
         if (!MessageValidate.validateContent(textMessageRequest.content)) {
             throw new IllegalArgumentException("Invalid content");
@@ -165,9 +194,20 @@ public class ControlMessageAdminServices {
             throw new IllegalArgumentException("Invalid chat id");
         }
 
-        if (getChatAdminServices.getChatById(fileMessageRequest.chatId) == null) {
+        Chat exitstingChat = getChatAdminServices.getChatById(fileMessageRequest.chatId);
+        if (exitstingChat == null) {
             throw new IllegalArgumentException("Chat does not exists");
         }
+
+        if (!exitstingChat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
+
+        ChatMember chatMember = getChatMemberAdminServices.getChatMemberByChatIdAndMemberId(fileMessageRequest.chatId, fileMessageRequest.senderId);
+        if (chatMember == null) 
+            throw new SecurityException("Sender does not have permission to access this chat");
+
+        if (ChatMemberServices.compareRole(chatMember.getRole(), ChatMemberRole.MEMBER) < 0)
+            throw new SecurityException("Sender does not have permission to send message in this chat");
 
         if (!MessageValidate.ValidateType(fileMessageRequest.type))
             throw new IllegalArgumentException("Invalid type");

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.owl.chat_service.application.service.admin.chat.GetChatAdminServices;
 import com.owl.chat_service.domain.chat.validate.ChatMemberValidate;
+import com.owl.chat_service.external_service.client.UserServiceApiClient;
 import com.owl.chat_service.persistence.mongodb.document.Chat;
 import com.owl.chat_service.persistence.mongodb.document.ChatMember;
 import com.owl.chat_service.persistence.mongodb.document.Chat.ChatType;
@@ -23,11 +24,13 @@ public class ControlChatMemberAdminSerivces {
     private final ChatMemberRepository chatMemberRepository;
     private final GetChatMemberAdminServices getChatMemberAdminServices;
     private final GetChatAdminServices getChatAdminServices;
+    private final UserServiceApiClient userServiceApiClient;
 
-    public ControlChatMemberAdminSerivces(ChatMemberRepository chatMemberRepository, GetChatMemberAdminServices getChatMemberAdminServices, GetChatAdminServices getChatAdminServices) {
+    public ControlChatMemberAdminSerivces(ChatMemberRepository chatMemberRepository, GetChatMemberAdminServices getChatMemberAdminServices, GetChatAdminServices getChatAdminServices, UserServiceApiClient userServiceApiClient) {
         this.chatMemberRepository = chatMemberRepository;
         this.getChatMemberAdminServices = getChatMemberAdminServices;
-        this.getChatAdminServices = getChatAdminServices;}
+        this.getChatAdminServices = getChatAdminServices;
+        this.userServiceApiClient = userServiceApiClient;}
 
     public ChatMember addNewChatMember(ChatMemberAdminRequest chatMemberRequest) {
         ChatMember newChatMember = new ChatMember();
@@ -35,12 +38,28 @@ public class ControlChatMemberAdminSerivces {
         if (!ChatMemberValidate.validateMemberId(chatMemberRequest.memberId)) 
             throw new IllegalArgumentException("Invalid member id");
 
+        try {
+            if (userServiceApiClient.getUserById(chatMemberRequest.memberId) == null) 
+                throw new IllegalArgumentException("Member not found");
+        }
+        catch (Exception e) {
+            throw new IllegalArgumentException(e.getMessage());
+        }
+
         if (!ChatMemberValidate.validateChatId(chatMemberRequest.chatId)) 
             throw new IllegalArgumentException("Invalid chat id");
 
         Chat chat = getChatAdminServices.getChatById(chatMemberRequest.chatId);
         if (chat == null) 
             throw new IllegalArgumentException("Chat does not exists");
+
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
+
+        if (chatMemberRequest.inviterId != null && !chatMemberRequest.inviterId.isBlank()) {
+            if (getChatMemberAdminServices.getChatMemberByChatIdAndMemberId(chatMemberRequest.chatId, chatMemberRequest.inviterId) == null)
+                throw new SecurityException("Inviter " + chatMemberRequest.inviterId + " does not have permission to access this chat");
+        }
 
         int numberOfMember = getChatMemberAdminServices.getChatMembersByChatId(chat.getId(), -1, 0, true).size();
 
@@ -95,8 +114,12 @@ public class ControlChatMemberAdminSerivces {
         if (!ChatMemberValidate.validateChatId(chatMemberRequest.chatId)) 
             throw new IllegalArgumentException("Invalid update chat id");
 
-        if (getChatAdminServices.getChatById(chatMemberRequest.chatId) == null) 
+        Chat chat = getChatAdminServices.getChatById(chatMemberRequest.chatId);
+        if (chat == null) 
             throw new IllegalArgumentException("Chat does not exists");
+
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
 
         if (getChatMemberAdminServices.getChatMemberByChatIdAndMemberId(chatMemberRequest.chatId, chatMemberRequest.memberId) != null) 
             throw new IllegalArgumentException("Chat member already exists");
@@ -122,6 +145,13 @@ public class ControlChatMemberAdminSerivces {
 
         if (!ChatMemberValidate.validateChatId(chatId)) 
             throw new IllegalArgumentException("Invalid chat id");
+
+        Chat chat = getChatAdminServices.getChatById(chatId);
+        if (chat == null) 
+            throw new IllegalArgumentException("Chat does not exists");
+
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
 
         ChatMember existingChatMember = getChatMemberAdminServices.getChatMemberByChatIdAndMemberId(chatId, memberId);
 
@@ -163,6 +193,13 @@ public class ControlChatMemberAdminSerivces {
 
         if (!ChatMemberValidate.validateChatId(chatId)) 
             throw new IllegalArgumentException("Invalid chat id");
+
+        Chat chat = getChatAdminServices.getChatById(chatId);
+        if (chat == null) 
+            throw new IllegalArgumentException("Chat does not exists");
+
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
 
         ChatMember existingChatMember = getChatMemberAdminServices.getChatMemberByChatIdAndMemberId(chatId, memberId);
 

@@ -47,7 +47,7 @@ public class FriendRequestAdminController {
             return ResponseEntity.ok().body(getFriendRequestAdminServices.getFriendRequests(page, size, ascSort, keywords, status, createdDateStart, createdDateEnd, updatedDateStart, updatedDateEnd));
         }
         catch (Exception e) {
-            return ResponseEntity.badRequest().body(e);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     

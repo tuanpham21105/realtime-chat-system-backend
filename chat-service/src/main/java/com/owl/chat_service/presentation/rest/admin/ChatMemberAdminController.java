@@ -145,7 +145,7 @@ public class ChatMemberAdminController {
             return ResponseEntity.ok().body(controlChatMemberAdminSerivces.addNewChatMember(chatMemberCreateRequest));
         }
         catch (Exception e) {
-            return ResponseEntity.badRequest().body(e);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

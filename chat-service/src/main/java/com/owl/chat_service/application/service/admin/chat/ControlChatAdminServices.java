@@ -58,6 +58,9 @@ public class ControlChatAdminServices {
 
         if (existingChat == null) 
             throw new IllegalArgumentException("Chat does not exists");
+
+        if (!existingChat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
         
 
         String normalizedType = chatRequest.type.trim().toUpperCase();
@@ -99,6 +102,9 @@ public class ControlChatAdminServices {
         if (existingChat == null) 
             throw new IllegalArgumentException("Chat does not exists");
 
+        if (!existingChat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
+
         updateChatStatus(chatId, false);
 
         controlChatMemberAdminSerivces.deleteChatMemberByChatId(chatId);
@@ -138,6 +144,9 @@ public class ControlChatAdminServices {
         if (chat == null)
             throw new IllegalArgumentException("Chat does not exists");
 
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
+
         if (chat.getNewestMessageDate() == null || message.getSentDate().compareTo(chat.getNewestMessageDate()) == 1) {
             chat.setNewestMessageId(message.getId());
             chat.setNewestMessageDate(message.getSentDate());
@@ -151,6 +160,9 @@ public class ControlChatAdminServices {
         if (existingChat == null) {
             throw new IllegalArgumentException("Chat not found");
         }
+
+        if (!existingChat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
 
         ChatValidate.validateAvatarFileMetaData(file);
 

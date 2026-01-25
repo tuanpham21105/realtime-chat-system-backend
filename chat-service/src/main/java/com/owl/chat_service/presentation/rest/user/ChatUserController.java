@@ -49,10 +49,9 @@ public class ChatUserController {
         // type
         // joinDateStart
         // joinDateEnd
-    @GetMapping("/member/{memberId}")
+    @GetMapping("/member")
     public ResponseEntity<?> getChatsByMemberId(
         @RequestHeader String requesterId, 
-        @PathVariable String memberId,
         @RequestParam(required = false, defaultValue = "") String keywords,
         @RequestParam(required = false, defaultValue = "0") int page,
         @RequestParam(required = false, defaultValue = "10") int size,
@@ -63,10 +62,10 @@ public class ChatUserController {
     ) 
     {
         try {
-            return ResponseEntity.ok().body(getChatUserServices.getChatsByMemberId(requesterId, memberId, keywords, page, size, ascSort, type, joinDateStart, joinDateEnd));
+            return ResponseEntity.ok().body(getChatUserServices.getChatsByMemberId(requesterId, keywords, page, size, ascSort, type, joinDateStart, joinDateEnd));
         }
         catch (Exception e) {
-            return ResponseEntity.badRequest().body(e);
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
     

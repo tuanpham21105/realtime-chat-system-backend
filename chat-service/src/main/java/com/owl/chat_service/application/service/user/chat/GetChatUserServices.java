@@ -37,7 +37,6 @@ public class GetChatUserServices {
 
     public List<Chat> getChatsByMemberId(
         String requesterId, 
-        String memberId,
         String keywords,
         int page,
         int size,
@@ -50,13 +49,10 @@ public class GetChatUserServices {
         if (!ChatMemberValidate.validateMemberId(requesterId))
             throw new IllegalArgumentException("Invalid requester id");
 
-        if (!ChatMemberValidate.validateMemberId(memberId))
-            throw new IllegalArgumentException("Invalid member id");
+        // if (!ChatMemberValidate.validateRequesterAndMemberAreSame(requesterId, memberId))
+        //     throw new SecurityException("Requester does not have permission to access this member chats");
 
-        if (!ChatMemberValidate.validateRequesterAndMemberAreSame(requesterId, memberId))
-            throw new SecurityException("Requester does not have permission to access this member chats");
-
-        List<ChatMember> chatMembers = getChatMemberAdminServices.getChatMembersByMemberId(memberId, null, -1, 1, true, null, joinDateStart, joinDateEnd);
+        List<ChatMember> chatMembers = getChatMemberAdminServices.getChatMembersByMemberId(requesterId, null, -1, 1, true, null, joinDateStart, joinDateEnd);
 
         List<String> chatsId = new ArrayList<>();
         for (ChatMember chatMember : chatMembers) {
@@ -98,6 +94,9 @@ public class GetChatUserServices {
 
         if (chat == null) 
             throw new IllegalArgumentException("Chat not found");
+
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
 
         return getChatAdminServices.getChatAvatarFile(chatId);
     }

@@ -56,17 +56,27 @@ public class ControlChatUserServices {
 
         Chat newChat = controlChatAdminServices.addNewChat(request);
 
+        ChatMemberAdminRequest chatMemberRequester = new ChatMemberAdminRequest();
+
+        chatMemberRequester.memberId = requesterId;
+        chatMemberRequester.chatId = newChat.getId();
+        chatMemberRequester.role = "OWNER";
+        chatMemberRequester.inviterId = null;
+        controlChatMemberAdminSerivces.addNewChatMember(chatMemberRequester);
+
         for (String memberId : chatRequest.chatMembersId) {
             ChatMemberAdminRequest chatMemberRequest = new ChatMemberAdminRequest();
             chatMemberRequest.memberId = memberId;
             chatMemberRequest.chatId = newChat.getId();
-            if (memberId == requesterId)
-                chatMemberRequest.role = "OWNER";
+            chatMemberRequest.inviterId = requesterId;
+            if (memberId.compareToIgnoreCase(requesterId) == 0) {
+                continue;
+            }
             else if (request.type == "PRIVATE")
                 chatMemberRequest.role = "OWNER";
             else 
                 chatMemberRequest.role = "MEMBER";
-            chatMemberRequest.inviterId = requesterId;
+
             controlChatMemberAdminSerivces.addNewChatMember(chatMemberRequest);
         }
 
@@ -79,10 +89,16 @@ public class ControlChatUserServices {
         if (chatMember == null)
             throw new SecurityException("Requester does not have permission to access this chat");
 
+        if (ChatMemberServices.compareRole(chatMember.getRole(), ChatMemberRole.ADMIN) < 0) 
+            throw new SecurityException("Requester does not have permission to rename this chat");
+
         if (!ChatValidate.validateName(name)) 
             throw new IllegalArgumentException("Invalid name");
 
         Chat chat = getChatAdminServices.getChatById(chatId);
+
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
 
         chat.setName(name);
 
@@ -93,6 +109,9 @@ public class ControlChatUserServices {
         ChatMember chatMember = getChatMemberAdminServices.getChatMemberByChatIdAndMemberId(chatId, requesterId);
 
         if (chatMember == null)
+            throw new SecurityException("Requester does not have permission to delete this chat");
+
+        if (ChatMemberServices.compareRole(chatMember.getRole(), ChatMemberRole.OWNER) < 0) 
             throw new SecurityException("Requester does not have permission to delete this chat");
 
         controlChatAdminServices.softDeleteChat(chatId);

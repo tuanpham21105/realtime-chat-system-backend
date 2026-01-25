@@ -10,12 +10,6 @@ import com.owl.user_service.presentation.dto.request.AccountRequest;
 
 @RestController
 @RequestMapping("/account")
-@CrossOrigin(
-    origins = "http://localhost:8080",
-    allowedHeaders = "*",
-    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE},
-    allowCredentials = "true"
-)
 public class AccountController {
     private final GetAccountServices getAccountServices;
     private final ControlAccountServices controlAccountServices;

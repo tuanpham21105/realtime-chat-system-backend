@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Objects;
 import com.owl.chat_service.application.service.admin.message.ControlMessageAdminServices;
 import com.owl.chat_service.application.service.user.chat.GetChatUserServices;
+import com.owl.chat_service.persistence.mongodb.document.Chat;
 import com.owl.chat_service.persistence.mongodb.document.Message;
 import com.owl.chat_service.persistence.mongodb.repository.MessageRepository;
 import com.owl.chat_service.presentation.dto.FileMessageUserRequest;
@@ -26,8 +27,12 @@ public class ControlMessageUserServices {
         this.controlMessageAdminServices = controlMessageAdminServices;}
 
     public Message addNewTextMessage(String requesterId, TextMessageUserRequest textMessageRequest) {
-        if (getChatUserServices.getChatById(requesterId, textMessageRequest.chatId) == null)
+        Chat chat = getChatUserServices.getChatById(requesterId, textMessageRequest.chatId);
+        if (chat == null)
             throw new IllegalArgumentException("Chat not found");
+
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
 
         TextMessageAdminRequest request = new TextMessageAdminRequest();
         request.chatId = textMessageRequest.chatId;
@@ -62,8 +67,12 @@ public class ControlMessageUserServices {
     }
 
     public Message addNewFileMessage(String requesterId, FileMessageUserRequest fileMessageRequest) {
-        if (getChatUserServices.getChatById(requesterId, fileMessageRequest.chatId) == null)
+        Chat chat = getChatUserServices.getChatById(requesterId, fileMessageRequest.chatId);
+        if (chat == null)
             throw new IllegalArgumentException("Chat not found");
+
+        if (!chat.getStatus())
+            throw new IllegalArgumentException("Chat have been removed");
 
         FileMessageAdminRequest request = new FileMessageAdminRequest();
         request.chatId = fileMessageRequest.chatId;
