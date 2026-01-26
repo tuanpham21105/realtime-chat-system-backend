@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.owl.social_service.domain.validate.FriendRequestValidate;
+import com.owl.social_service.external_service.client.UserServiceApiClient;
 import com.owl.social_service.persistence.mongodb.document.FriendRequest;
 import com.owl.social_service.persistence.mongodb.document.Friendship;
 import com.owl.social_service.persistence.mongodb.document.FriendRequest.FriendRequestStatus;
@@ -23,13 +24,15 @@ public class ControlFriendRequestAdminServices {
     private final GetFriendshipAdminServices getFriendshipAdminServices;
     private final ControlFriendshipAdminServices controlFriendshipAdminServices;
     private final GetBlockAdminServices getBlockAdminServices;
+    private final UserServiceApiClient userServiceApiClient;
 
-    public ControlFriendRequestAdminServices(FriendRequestRepository friendRequestRepository, GetFriendRequestAdminServices getFriendRequestAdminServices, GetFriendshipAdminServices getFriendshipAdminServices, ControlFriendshipAdminServices controlFriendshipAdminServices, GetBlockAdminServices getBlockAdminServices) {
+    public ControlFriendRequestAdminServices(FriendRequestRepository friendRequestRepository, GetFriendRequestAdminServices getFriendRequestAdminServices, GetFriendshipAdminServices getFriendshipAdminServices, ControlFriendshipAdminServices controlFriendshipAdminServices, GetBlockAdminServices getBlockAdminServices, UserServiceApiClient userServiceApiClient) {
         this.friendRequestRepository = friendRequestRepository;
         this.getFriendRequestAdminServices = getFriendRequestAdminServices;
         this.getFriendshipAdminServices = getFriendshipAdminServices;
         this.controlFriendshipAdminServices = controlFriendshipAdminServices;
         this.getBlockAdminServices = getBlockAdminServices;
+        this.userServiceApiClient = userServiceApiClient;
     }
 
     public FriendRequest addNewFriendRequest(FriendRequestCreateRequest request) {
@@ -37,6 +40,12 @@ public class ControlFriendRequestAdminServices {
 
         if (request.senderId.trim().compareToIgnoreCase(request.receiverId.trim()) == 0) 
             throw new IllegalArgumentException("Invalid request");
+
+        if (userServiceApiClient.getUserById(request.senderId) != null) 
+            throw new IllegalArgumentException("Sender does not exists");
+
+        if (userServiceApiClient.getUserById(request.receiverId) != null) 
+            throw new IllegalArgumentException("Receiver does not exists");
 
         if (existingFriendRequest.size() > 0) 
             throw new IllegalArgumentException("Friend request already exists");

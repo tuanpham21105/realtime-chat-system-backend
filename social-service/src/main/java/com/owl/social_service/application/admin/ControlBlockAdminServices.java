@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.owl.social_service.domain.validate.FriendshipValidate;
+import com.owl.social_service.external_service.client.UserServiceApiClient;
 import com.owl.social_service.persistence.mongodb.document.Block;
 import com.owl.social_service.persistence.mongodb.document.FriendRequest;
 import com.owl.social_service.persistence.mongodb.document.Friendship;
@@ -23,14 +24,16 @@ public class ControlBlockAdminServices {
     private final ControlFriendRequestAdminServices controlFriendRequestAdminServices;
     private final GetFriendshipAdminServices getFriendshipAdminServices;
     private final ControlFriendshipAdminServices controlFriendshipAdminServices;
+    private final UserServiceApiClient userServiceApiClient;
 
-    public ControlBlockAdminServices(BlockRepository blockRepository, GetBlockAdminServices getBlockAdminServices, GetFriendRequestAdminServices getFriendRequestAdminServices, ControlFriendRequestAdminServices controlFriendRequestAdminServices, ControlFriendshipAdminServices controlFriendshipAdminServices, GetFriendshipAdminServices getFriendshipAdminServices) {
+    public ControlBlockAdminServices(BlockRepository blockRepository, GetBlockAdminServices getBlockAdminServices, GetFriendRequestAdminServices getFriendRequestAdminServices, ControlFriendRequestAdminServices controlFriendRequestAdminServices, ControlFriendshipAdminServices controlFriendshipAdminServices, GetFriendshipAdminServices getFriendshipAdminServices, UserServiceApiClient userServiceApiClient) {
         this.blockRepository = blockRepository;
         this.getBlockAdminServices = getBlockAdminServices;
         this.getFriendRequestAdminServices = getFriendRequestAdminServices;
         this.controlFriendRequestAdminServices = controlFriendRequestAdminServices;
         this.getFriendshipAdminServices = getFriendshipAdminServices;
         this.controlFriendshipAdminServices = controlFriendshipAdminServices;
+        this.userServiceApiClient = userServiceApiClient;
     }
 
     public Block addNewBlock(BlockCreateRequest request) {
@@ -39,6 +42,12 @@ public class ControlBlockAdminServices {
 
         if (!FriendshipValidate.validateUserId(request.blockedId))
             throw new IllegalArgumentException("Invalid blocked id");
+
+        if (userServiceApiClient.getUserById(request.blockerId) != null) 
+            throw new IllegalArgumentException("Blocker does not exists");
+
+        if (userServiceApiClient.getUserById(request.blockedId) != null) 
+            throw new IllegalArgumentException("Blocked does not exists");
 
         Block existingBlock = getBlockAdminServices.getUserBlockUser(request.blockerId, request.blockedId);
 
