@@ -9,11 +9,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.owl.user_service.application.service.account.ControlAccountServices;
 import com.owl.user_service.application.service.account.GetAccountServices;
+import com.owl.user_service.application.service.auth.ControlAuthenticationServices;
 import com.owl.user_service.domain.service.UserProfileServices;
 import com.owl.user_service.infrastructure.config.UserProfileServicesConfig;
 import com.owl.user_service.persistence.jpa.entity.Account;
 import com.owl.user_service.persistence.jpa.entity.UserProfile;
 import com.owl.user_service.persistence.jpa.repository.UserProfileJpaRepository;
+import com.owl.user_service.presentation.dto.request.AccountRequest;
+import com.owl.user_service.presentation.dto.request.SignUpRequestDto;
 import com.owl.user_service.presentation.dto.request.UserProfileCreateRequest;
 import com.owl.user_service.presentation.dto.request.UserProfileRequest;
 
@@ -27,13 +30,15 @@ public class ControlUserProfileServices {
     private final UserProfileServices userProfileServices;
     private final GetUserProfileServices getUserProfileServices;
     private final GetAccountServices getAccountServices;
+    private final ControlAuthenticationServices controlAuthenticationServices;
 
-    public ControlUserProfileServices(UserProfileJpaRepository userProfileJpaRepository, ControlAccountServices controlAccountServices, GetUserProfileServices _getUserProfileServices, GetAccountServices _getAccountServices) {
+    public ControlUserProfileServices(UserProfileJpaRepository userProfileJpaRepository, ControlAccountServices controlAccountServices, GetUserProfileServices _getUserProfileServices, GetAccountServices _getAccountServices, ControlAuthenticationServices controlAuthenticationServices) {
         this.userProfileJpaRepository = userProfileJpaRepository;
         this.controlAccountServices = controlAccountServices;
         this.userProfileServices = new UserProfileServices();
         this.getUserProfileServices = _getUserProfileServices;
         this.getAccountServices = _getAccountServices;
+        this.controlAuthenticationServices = controlAuthenticationServices;
     }
 
     public UserProfile addUserProfile(UserProfileCreateRequest userProfileCreateRequest) {
@@ -58,13 +63,8 @@ public class ControlUserProfileServices {
         if (getUserProfileServices.getUserProfileById(id) != null) {
             throw new IllegalArgumentException("User profile already exists");
         }
-
-        try {
-            return userProfileJpaRepository.save(userProfileServices.CreateNewUserProfile(account, userProfileRequest));
-        }
-        catch (Exception e) {
-            throw e;
-        }
+        
+        return userProfileJpaRepository.save(userProfileServices.CreateNewUserProfile(account, userProfileRequest));
     }
 
     public UserProfile updateUserProfile(String id, UserProfileRequest userProfileRequest) {
@@ -163,5 +163,25 @@ public class ControlUserProfileServices {
         }
 
         updateAvatarUserProfile(id, userProfileServices.SaveUserAvatarFile(id, file));
+    }
+
+    public UserProfile signUp(SignUpRequestDto request) {
+        UserProfileCreateRequest createRequest = new UserProfileCreateRequest();
+
+        createRequest.setAccount(new AccountRequest());
+
+        createRequest.getAccount().setRole("USER");
+        createRequest.getAccount().setUsername(request.accountRequest.username);
+        createRequest.getAccount().setPassword(request.accountRequest.password);
+
+        createRequest.setUserProfile(request.userProfileRequest);
+
+        UserProfile userProfile = addUserProfile(createRequest);
+
+        controlAccountServices.updateAccountStatus(userProfile.getId(), false);
+
+        controlAuthenticationServices.newSignUpAuthenticateCode(userProfile.getId());
+
+        return userProfile;
     }
 }

@@ -23,6 +23,11 @@ public class ControlAccountServices {
 
     public Account addAccount(AccountRequest accountRequest) {
         try {
+            Account existingAccount = accountRepository.findByUsername(accountRequest.getUsername()).orElse(null);
+
+            if (existingAccount != null)
+                throw new IllegalArgumentException("Username already exists");
+
             Account lastAccount = accountRepository.count() == 0 ? null : accountRepository.findFirstByOrderByIdDesc();
             return accountRepository.save(accountServices.CreateNewAccount(lastAccount != null ? lastAccount.getId() : null, accountRequest));
         }
@@ -36,12 +41,20 @@ public class ControlAccountServices {
             throw new IllegalArgumentException("Id is invalid: " + id);
         }
 
-        if (accountRepository.findById(id).isEmpty()) {
+        Account updateAccount = accountRepository.findById(id).orElse(null);
+
+        if (updateAccount == null)
             throw new IllegalArgumentException("Account with id " + id + " does not exist");
-        }
 
         if (!accountServices.ValidateUsername(accountRequest.getUsername())) {
             throw new IllegalArgumentException("Username is invalid");
+        }
+
+        if (accountRequest.getUsername().compareTo(updateAccount.getUsername()) != 0) {
+            Account existingAccount = accountRepository.findByUsername(accountRequest.getUsername()).orElse(null);
+            
+            if (existingAccount != null)
+                throw new IllegalArgumentException("Username already exists");
         }
 
         if (!accountServices.ValidatePassword(accountRequest.getPassword())) {

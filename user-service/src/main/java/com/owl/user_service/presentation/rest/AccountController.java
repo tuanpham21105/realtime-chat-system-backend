@@ -8,6 +8,10 @@ import com.owl.user_service.application.service.account.GetAccountServices;
 import com.owl.user_service.application.service.user_profile.ControlUserProfileServices;
 import com.owl.user_service.presentation.dto.request.AccountRequest;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
+
 @RestController
 @RequestMapping("/account")
 public class AccountController {

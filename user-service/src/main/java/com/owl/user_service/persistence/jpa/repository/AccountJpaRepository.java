@@ -1,6 +1,7 @@
 package com.owl.user_service.persistence.jpa.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -23,7 +24,7 @@ public interface AccountJpaRepository extends JpaRepository<Account, String>, Jp
     public List<Account> findByIdContainingIgnoreCase(String keywords);
 
     //findByUsername
-    public Account findByUsername(String username);
+    public Optional<Account> findByUsername(String username);
 
     //findByUsernameContainingIgnoreCase
     public List<Account> findByUsernameContainingIgnoreCase(String keywords);
