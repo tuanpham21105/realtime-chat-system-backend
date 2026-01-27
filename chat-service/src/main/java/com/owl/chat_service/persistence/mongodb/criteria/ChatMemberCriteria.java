@@ -62,7 +62,7 @@ public class ChatMemberCriteria {
                 dateCriteria.gte(Objects.requireNonNull(joindDateStart, "joindDateStart cannot be null"));
             }
             if (joinDateEnd != null) {
-                dateCriteria.gte(Objects.requireNonNull(joinDateEnd, "joinDateEnd cannot be null"));
+                dateCriteria.lte(Objects.requireNonNull(joinDateEnd, "joinDateEnd cannot be null"));
             }
 
             criteriaList.add(dateCriteria);

@@ -72,7 +72,7 @@ public class ChatCriteria {
                 dateCriteria.gte(Objects.requireNonNull(createdDateStart, "createdDateStart cannot be null"));
             }
             if (createdDateEnd != null) {
-                dateCriteria.gte(Objects.requireNonNull(createdDateEnd, "createdDateEnd cannot be null"));
+                dateCriteria.lte(Objects.requireNonNull(createdDateEnd, "createdDateEnd cannot be null"));
             }
 
             criteriaList.add(dateCriteria);
@@ -139,7 +139,7 @@ public class ChatCriteria {
                 dateCriteria.gte(Objects.requireNonNull(createdDateStart, "createdDateStart cannot be null"));
             }
             if (createdDateEnd != null) {
-                dateCriteria.gte(Objects.requireNonNull(createdDateEnd, "createdDateEnd cannot be null"));
+                dateCriteria.lte(Objects.requireNonNull(createdDateEnd, "createdDateEnd cannot be null"));
             }
 
             criteriaList.add(dateCriteria);
