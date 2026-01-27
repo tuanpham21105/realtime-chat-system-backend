@@ -122,7 +122,7 @@ public class ChatMemberAdminController {
         // chat id
         // member id
     @GetMapping("/{memberId}/chat/{chatId}")
-    public ResponseEntity<?> getMethodName(@PathVariable String memberId, @PathVariable String chatId) {
+    public ResponseEntity<?> getChatMemberByChatIdAndMemberId(@PathVariable String memberId, @PathVariable String chatId) {
         try {
             return ResponseEntity.ok().body(getChatMemberAdminServices.getChatMemberByChatIdAndMemberId(chatId, memberId));
         }
