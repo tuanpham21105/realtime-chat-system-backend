@@ -4,9 +4,9 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.chat_system.api_gateway.external_service.dto.response.user_service.AccountDto;
+import com.chat_system.api_gateway.external_service.dto.response.user_service.UserProfileDto;
 import com.chat_system.api_gateway.infrastructure.properties.WebClientProperties;
-import com.chat_system.api_gateway.persistence.entity.Account;
-import com.chat_system.api_gateway.persistence.entity.UserProfile;
 import com.chat_system.api_gateway.presentation.dto.request.auth.SignInRequestDto;
 import com.chat_system.api_gateway.presentation.dto.request.auth.SignUpAuthenticateRequest;
 import com.chat_system.api_gateway.presentation.dto.request.auth.SignUpRequestDto;
@@ -22,7 +22,7 @@ public class AuthWebClient {
     }
 
     // ---------------- SIGN IN ----------------
-    public Account signIn(SignInRequestDto request) {
+    public AccountDto signIn(SignInRequestDto request) {
 
         return webClient.post()
                 .uri("/auth/signin")
@@ -32,12 +32,12 @@ public class AuthWebClient {
                         r -> r.bodyToMono(String.class).map(body -> new RuntimeException(body)))
                 .onStatus(HttpStatusCode::is5xxServerError,
                         r -> Mono.error(new RuntimeException("Auth service error")))
-                .bodyToMono(Account.class)
+                .bodyToMono(AccountDto.class)
                 .block();
     }
 
     // ---------------- SIGN UP ----------------
-    public UserProfile signUp(SignUpRequestDto request) {
+    public UserProfileDto signUp(SignUpRequestDto request) {
 
         return webClient.post()
                 .uri("/auth/signup")
@@ -47,7 +47,7 @@ public class AuthWebClient {
                         r -> r.bodyToMono(String.class).map(body -> new RuntimeException(body)))
                 .onStatus(HttpStatusCode::is5xxServerError,
                         r -> Mono.error(new RuntimeException("Auth service error")))
-                .bodyToMono(UserProfile.class)
+                .bodyToMono(UserProfileDto.class)
                 .block();
     }
 

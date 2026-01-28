@@ -1,8 +1,8 @@
-package com.chat_system.api_gateway.persistence.entity;
+package com.chat_system.api_gateway.external_service.dto.response.user_service;
 
 import java.time.LocalDateTime;
 
-public class Account{
+public class AccountDto{
     public String id;
     public Boolean status;
     public AccountRole role;
