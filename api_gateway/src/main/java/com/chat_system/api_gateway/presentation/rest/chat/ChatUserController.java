@@ -38,7 +38,7 @@ public class ChatUserController {
         // specification
     @GetMapping("/member")
     public ResponseEntity<?> getChatsByMemberId(
-        @RequestHeader String requesterId, 
+        @RequestHeader String token, 
         @RequestParam(required = false, defaultValue = "") String keywords,
         @RequestParam(required = false, defaultValue = "0") int page,
         @RequestParam(required = false, defaultValue = "10") int size,
@@ -49,7 +49,7 @@ public class ChatUserController {
     ) 
     {
         try {
-            return ResponseEntity.ok().body(chatUserWebClient.getChatsByMember(requesterId, keywords, page, size, ascSort, type, joinDateStart, joinDateEnd));
+            return ResponseEntity.ok().body(chatUserWebClient.getChatsByMember(token, keywords, page, size, ascSort, type, joinDateStart, joinDateEnd));
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -60,9 +60,9 @@ public class ChatUserController {
         // token
         // chat id
     @GetMapping("/{chatId}")
-    public ResponseEntity<?> getChatByChatId(@RequestHeader String requesterId, @PathVariable String chatId) {
+    public ResponseEntity<?> getChatByChatId(@RequestHeader String token, @PathVariable String chatId) {
         try {
-            return ResponseEntity.ok().body(chatUserWebClient.getChatById(requesterId, chatId));
+            return ResponseEntity.ok().body(chatUserWebClient.getChatById(token, chatId));
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -73,9 +73,9 @@ public class ChatUserController {
         // token
         // chat id
     @GetMapping("/{chatId}/avatar")
-    public ResponseEntity<?> getChatAvatar(@RequestHeader String requesterId, @PathVariable String chatId) {
+    public ResponseEntity<?> getChatAvatar(@RequestHeader String token, @PathVariable String chatId) {
         try {
-            ResponseEntity<Resource> data = chatUserWebClient.getChatAvatarFull(requesterId, chatId);
+            ResponseEntity<Resource> data = chatUserWebClient.getChatAvatarFull(token, chatId);
 
             return ResponseEntity.ok()
                     .headers(data.getHeaders())
@@ -91,9 +91,9 @@ public class ChatUserController {
         // chat name
         // chat member id list
     @PostMapping("")
-    public ResponseEntity<?> postChat(@RequestHeader String requesterId, @RequestBody ChatUserRequest chatRequest) {
+    public ResponseEntity<?> postChat(@RequestHeader String token, @RequestBody ChatUserRequest chatRequest) {
         try {
-            return ResponseEntity.ok().body(chatUserWebClient.createChat(requesterId, chatRequest));
+            return ResponseEntity.ok().body(chatUserWebClient.createChat(token, chatRequest));
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -105,9 +105,9 @@ public class ChatUserController {
         // chat id
         // chat name
     @PatchMapping("/{chatId}/name")
-    public ResponseEntity<?> patchChatName(@RequestHeader String requesterId, @PathVariable String chatId, @RequestBody ChatUpdateNameRequest name) {
+    public ResponseEntity<?> patchChatName(@RequestHeader String token, @PathVariable String chatId, @RequestBody ChatUpdateNameRequest name) {
         try {
-            return ResponseEntity.ok().body(chatUserWebClient.updateChatName(requesterId, chatId, name));
+            return ResponseEntity.ok().body(chatUserWebClient.updateChatName(token, chatId, name));
         }
         catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -119,9 +119,9 @@ public class ChatUserController {
         // chat id
         // avatar file
     @PostMapping(value = "/{chatId}/avatar/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> patchChatAvatar(@RequestHeader String requesterId, @PathVariable String chatId, @RequestPart("file") MultipartFile avatarFile) {
+    public ResponseEntity<String> patchChatAvatar(@RequestHeader String token, @PathVariable String chatId, @RequestPart("file") MultipartFile avatarFile) {
         try {
-            chatUserWebClient.uploadChatAvatar(requesterId, chatId, avatarFile);
+            chatUserWebClient.uploadChatAvatar(token, chatId, avatarFile);
             return ResponseEntity.ok("Upload avatar successfully");
         }
         catch (Exception e) {
@@ -138,9 +138,9 @@ public class ChatUserController {
         // token
         // chat id
     @DeleteMapping("/{chatId}/delete")
-    public ResponseEntity<String> deactivateChat(@RequestHeader String requesterId, @PathVariable String chatId) {
+    public ResponseEntity<String> deactivateChat(@RequestHeader String token, @PathVariable String chatId) {
         try {
-            chatUserWebClient.deactivateChat(requesterId, chatId);
+            chatUserWebClient.deactivateChat(token, chatId);
             return ResponseEntity.ok("Delete user chat successfully");
         }
         catch (Exception e) {

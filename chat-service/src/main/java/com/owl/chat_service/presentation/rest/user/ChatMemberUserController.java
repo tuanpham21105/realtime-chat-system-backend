@@ -39,7 +39,7 @@ public class ChatMemberUserController {
         // page
         // size
         // ascSort
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<?> getChatMembersByMemberId(
         @RequestHeader String requesterId,
         @RequestParam(required = false, defaultValue = "") String keywords,
