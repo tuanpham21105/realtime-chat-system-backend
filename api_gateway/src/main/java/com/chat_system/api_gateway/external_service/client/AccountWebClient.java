@@ -12,6 +12,8 @@ import com.chat_system.api_gateway.external_service.dto.response.user_service.Ac
 import com.chat_system.api_gateway.infrastructure.properties.WebClientProperties;
 import com.chat_system.api_gateway.presentation.dto.request.account.AccountRequest;
 
+import reactor.core.publisher.Mono;
+
 @Service
 public class AccountWebClient {
     private final WebClient webClient;
@@ -38,9 +40,11 @@ public class AccountWebClient {
                         .queryParam("ascSort", ascSort)
                         .build())
                 .retrieve()
-                .onStatus(HttpStatusCode::isError,
+                .onStatus(HttpStatusCode::is4xxClientError,
                         r -> r.bodyToMono(String.class)
-                              .map(RuntimeException::new))
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("Account service error")))
                 .bodyToMono(new ParameterizedTypeReference<List<AccountDto>>() {})
                 .block();
     }
@@ -51,9 +55,11 @@ public class AccountWebClient {
         return webClient.get()
                 .uri("/account/{id}", id)
                 .retrieve()
-                .onStatus(HttpStatusCode::isError,
+                .onStatus(HttpStatusCode::is4xxClientError,
                         r -> r.bodyToMono(String.class)
-                              .map(RuntimeException::new))
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("Account service error")))
                 .bodyToMono(AccountDto.class)
                 .block();
     }
@@ -65,9 +71,11 @@ public class AccountWebClient {
                 .uri("/account")
                 .bodyValue(request)
                 .retrieve()
-                .onStatus(HttpStatusCode::isError,
+                .onStatus(HttpStatusCode::is4xxClientError,
                         r -> r.bodyToMono(String.class)
-                              .map(RuntimeException::new))
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("Account service error")))
                 .bodyToMono(AccountDto.class)
                 .block();
     }
@@ -79,9 +87,11 @@ public class AccountWebClient {
                 .uri("/account/{id}", id)
                 .bodyValue(request)
                 .retrieve()
-                .onStatus(HttpStatusCode::isError,
+                .onStatus(HttpStatusCode::is4xxClientError,
                         r -> r.bodyToMono(String.class)
-                              .map(RuntimeException::new))
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("Account service error")))
                 .bodyToMono(AccountDto.class)
                 .block();
     }
@@ -92,9 +102,11 @@ public class AccountWebClient {
         return webClient.patch()
                 .uri("/account/{id}/status/{status}", id, status)
                 .retrieve()
-                .onStatus(HttpStatusCode::isError,
+                .onStatus(HttpStatusCode::is4xxClientError,
                         r -> r.bodyToMono(String.class)
-                              .map(RuntimeException::new))
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("Account service error")))
                 .bodyToMono(AccountDto.class)
                 .block();
     }
@@ -105,9 +117,11 @@ public class AccountWebClient {
         return webClient.delete()
                 .uri("/account/{id}", id)
                 .retrieve()
-                .onStatus(HttpStatusCode::isError,
+                .onStatus(HttpStatusCode::is4xxClientError,
                         r -> r.bodyToMono(String.class)
-                              .map(RuntimeException::new))
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("Account service error")))
                 .bodyToMono(String.class)
                 .block();
     }

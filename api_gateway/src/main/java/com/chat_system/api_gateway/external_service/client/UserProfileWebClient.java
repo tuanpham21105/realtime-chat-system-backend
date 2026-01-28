@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import com.chat_system.api_gateway.external_service.dto.response.user_service.Us
 import com.chat_system.api_gateway.infrastructure.properties.WebClientProperties;
 import com.chat_system.api_gateway.presentation.dto.request.user_profile.UserProfileCreateRequest;
 import com.chat_system.api_gateway.presentation.dto.request.user_profile.UserProfileRequest;
+
+import reactor.core.publisher.Mono;
 
 
 @Service
@@ -49,6 +52,11 @@ public class UserProfileWebClient {
                         .queryParam("ascSort", ascSort)
                         .build())
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        r -> r.bodyToMono(String.class)
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("User profile service error")))
                 .bodyToMono(new ParameterizedTypeReference<List<UserProfileDto>>() {})
                 .block();
     }
@@ -58,6 +66,11 @@ public class UserProfileWebClient {
         return webClient.get()
                 .uri("/{id}", id)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        r -> r.bodyToMono(String.class)
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("User profile service error")))
                 .bodyToMono(UserProfileDto.class)
                 .block();
     }
@@ -67,6 +80,11 @@ public class UserProfileWebClient {
         return webClient.post()
                 .bodyValue(request)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        r -> r.bodyToMono(String.class)
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("User profile service error")))
                 .bodyToMono(UserProfileDto.class)
                 .block();
     }
@@ -77,6 +95,11 @@ public class UserProfileWebClient {
                 .uri("/account/{id}", accountId)
                 .bodyValue(request)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        r -> r.bodyToMono(String.class)
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("User profile service error")))
                 .bodyToMono(UserProfileDto.class)
                 .block();
     }
@@ -87,31 +110,46 @@ public class UserProfileWebClient {
                 .uri("/{id}", id)
                 .bodyValue(request)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        r -> r.bodyToMono(String.class)
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("User profile service error")))
                 .bodyToMono(UserProfileDto.class)
                 .block();
     }
 
     // ---------- DELETE ----------
-    public void deleteProfile(String id) {
-        webClient.delete()
+    public String deleteProfile(String id) {
+        return webClient.delete()
                 .uri("/{id}", id)
                 .retrieve()
-                .toBodilessEntity()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        r -> r.bodyToMono(String.class)
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("User profile service error")))
+                .bodyToMono(String.class)
                 .block();
     }
 
     // ---------- UPLOAD AVATAR ----------
-    public void uploadAvatar(String id, MultipartFile file) {
+    public String uploadAvatar(String id, MultipartFile file) {
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("file", file.getResource());
 
-        webClient.post()
+        return webClient.post()
                 .uri("/{id}/avatar/upload", id)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(body))
                 .retrieve()
-                .toBodilessEntity()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        r -> r.bodyToMono(String.class)
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("User profile service error")))
+                .bodyToMono(String.class)
                 .block();
     }
 
@@ -120,6 +158,11 @@ public class UserProfileWebClient {
         return webClient.get()
                 .uri("/{id}/avatar", id)
                 .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError,
+                        r -> r.bodyToMono(String.class)
+                            .map(RuntimeException::new))
+                .onStatus(HttpStatusCode::is5xxServerError,
+                        r -> Mono.error(new RuntimeException("User profile service error")))
                 .toEntity(Resource.class)
                 .block();
     }
