@@ -122,7 +122,7 @@ public class ChatUserController {
         // chat id
         // chat name
     @PatchMapping("/{chatId}/name")
-    public ResponseEntity<?> patchChatName(@RequestHeader String requesterId, @RequestHeader String chatId, @RequestBody ChatUpdateNameRequest name) {
+    public ResponseEntity<?> patchChatName(@RequestHeader String requesterId, @PathVariable String chatId, @RequestBody ChatUpdateNameRequest name) {
         try {
             return ResponseEntity.ok().body(controlChatUserServices.updateChatName(requesterId, chatId, name.name));
         }
