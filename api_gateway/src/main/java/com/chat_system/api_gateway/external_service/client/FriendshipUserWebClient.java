@@ -19,7 +19,7 @@ public class FriendshipUserWebClient {
     private final WebClient webClient;
 
     public FriendshipUserWebClient(WebClient.Builder builder, WebClientProperties properties) {
-        this.webClient = builder.baseUrl(properties.user).build();
+        this.webClient = builder.baseUrl(properties.social).build();
     }
 
     public List<FriendshipDto> getFriendships(
