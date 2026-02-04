@@ -32,7 +32,7 @@ public class FriendRequestUserController {
         this.controlFriendRequestUserServices = controlFriendRequestUserServices;
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getFriendRequests(
         @RequestHeader String requesterId,
         @RequestParam(required = false, defaultValue = "0") int page,
@@ -163,7 +163,7 @@ public class FriendRequestUserController {
         }
     }
 
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> postFriendRequest(@RequestHeader String requesterId, @RequestBody FriendRequestCreateUserRequest request) {
         try {
             return ResponseEntity.ok().body(controlFriendRequestUserServices.addNewFriendRequest(requesterId, request.receiverId));

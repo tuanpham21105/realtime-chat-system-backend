@@ -28,7 +28,7 @@ public class FriendshipAdminController {
         this.getFriendshipAdminServices = getFriendshipAdminServices;
         this.controlFriendshipAdminServices = controlFriendshipAdminServices;}
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getFriendships(
         @RequestParam(required = false, defaultValue = "0") int page,
         @RequestParam(required = false, defaultValue = "10") int size,
@@ -92,7 +92,7 @@ public class FriendshipAdminController {
         }
     }
     
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?>  postFriendship(@RequestBody FriendshipCreateRequest friendshipCreateRequest) 
     {
         try {

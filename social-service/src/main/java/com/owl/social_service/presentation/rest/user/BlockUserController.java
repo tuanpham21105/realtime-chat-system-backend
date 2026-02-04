@@ -43,7 +43,7 @@ public class BlockUserController {
         }
     }
 
-    @GetMapping("/blocked")
+    @GetMapping("/")
     public ResponseEntity<?> getUserBlocked(
         @RequestHeader String requesterId,
         @RequestParam(required = false, defaultValue = "0") int page,
@@ -61,7 +61,7 @@ public class BlockUserController {
         }
     }
 
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> postBlock(@RequestHeader String requesterId, @RequestBody BlockCreateUserRequest request) {
         try {
             return ResponseEntity.ok().body(controlBlockUserServices.addNewBlock(requesterId, request.blockedId));

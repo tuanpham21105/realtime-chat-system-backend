@@ -27,7 +27,7 @@ public class FriendshipUserController {
         this.controlFriendshipUserServices = controlFriendshipUserServices;
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getFriendships(
         @RequestHeader String requesterId,
         @RequestParam(required = false, defaultValue = "0") int page,

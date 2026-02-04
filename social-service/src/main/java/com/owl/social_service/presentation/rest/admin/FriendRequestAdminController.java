@@ -30,7 +30,7 @@ public class FriendRequestAdminController {
         this.controlFriendRequestAdminServices = controlFriendRequestAdminServices;
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getFriendRequests(
         @RequestParam(required = false, defaultValue = "0") int page,
         @RequestParam(required = false, defaultValue = "10") int size,
@@ -165,7 +165,7 @@ public class FriendRequestAdminController {
         }
     }
 
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> postFriendRequest(@RequestBody FriendRequestCreateRequest request) {
         try {
             return ResponseEntity.ok().body(controlFriendRequestAdminServices.addNewFriendRequest(request));

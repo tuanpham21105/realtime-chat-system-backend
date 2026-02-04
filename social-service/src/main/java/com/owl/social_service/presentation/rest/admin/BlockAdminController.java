@@ -30,7 +30,7 @@ public class BlockAdminController {
         this.controlBlockAdminServices = controlBlockAdminServices;
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getBlocks(
         @RequestParam(required = false, defaultValue = "0") int page,
         @RequestParam(required = false, defaultValue = "10") int size,
@@ -110,7 +110,7 @@ public class BlockAdminController {
         }
     }
 
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> postBlock(@RequestBody BlockCreateRequest request) {
         try {
             return ResponseEntity.ok().body(controlBlockAdminServices.addNewBlock(request));
