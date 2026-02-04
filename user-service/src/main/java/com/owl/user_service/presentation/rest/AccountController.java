@@ -81,6 +81,15 @@ public class AccountController {
         }
     }
 
+    @DeleteMapping("{id}/deactivate")
+    public ResponseEntity<?> deactivateAccount(@PathVariable String id) {
+        try {
+            return ResponseEntity.ok(controlAccountServices.updateAccountStatus(id, false));
+        } catch (Exception ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
     @DeleteMapping("{id}")
     public ResponseEntity<String> deleteAccount(@PathVariable String id) {
         try {
