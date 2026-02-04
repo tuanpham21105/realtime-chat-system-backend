@@ -25,7 +25,7 @@ public class AccountController {
         this.controlUserProfileServices = _controlUserProfileServices;
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getAccounts(
         @RequestParam(required = false, defaultValue = "") String keywords, 
         @RequestParam(required = false, defaultValue = "0") int page, 
@@ -52,7 +52,7 @@ public class AccountController {
         }
     }
     
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> addAccount(@RequestBody AccountRequest newAccountRequest) {
         try {
             return ResponseEntity.ok(controlAccountServices.addAccount(newAccountRequest));

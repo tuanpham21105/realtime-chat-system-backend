@@ -82,17 +82,13 @@ public class ControlUserProfileServices {
             throw new IllegalArgumentException("Invalid phone number");
         }
 
-        UserProfile updatedUserProfile = new UserProfile(
-            existingUserProfile.getAccount(),
-            userProfileRequest.getName(),
-            userProfileRequest.getGender(),
-            userProfileRequest.getDateOfBirth(),
-            existingUserProfile.getAvatar(),
-            userProfileRequest.getEmail(),
-            userProfileRequest.getPhoneNumber()
-        );
+        existingUserProfile.setName(userProfileRequest.getName());
+        existingUserProfile.setGender(userProfileRequest.getGender());
+        existingUserProfile.setDateOfBirth(userProfileRequest.getDateOfBirth());
+        existingUserProfile.setEmail(userProfileRequest.getEmail());
+        existingUserProfile.setPhoneNumber(userProfileRequest.getPhoneNumber());
 
-        return userProfileJpaRepository.save(updatedUserProfile);
+        return userProfileJpaRepository.save(existingUserProfile);
     }
 
     public void deleteUserProfile(String id) {

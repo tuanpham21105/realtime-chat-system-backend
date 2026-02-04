@@ -38,7 +38,7 @@ public class UserProfileController {
         this.controlUserProfileServices = controlUserProfileServices;
     }
 
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getProfiles(
         @RequestParam(required = false, defaultValue = "") String keywords, 
         @RequestParam(required = false, defaultValue = "0") int page, 
@@ -69,7 +69,7 @@ public class UserProfileController {
         }
     }
 
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> addNewProfile(@RequestBody UserProfileCreateRequest userProfileCreateRequest) {
         try 
         {
