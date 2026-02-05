@@ -8,4 +8,6 @@ import com.owl.chat_service.persistence.mongodb.document.Message;
 
 public interface MessageRepository extends MongoRepository<Message, String> {
     public List<Message> findByChatId(String chatId);
+    
+    public void deleteByChatId(String chatId);
 }

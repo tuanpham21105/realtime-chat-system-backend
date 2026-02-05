@@ -8,9 +8,10 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.owl.chat_service.application.service.admin.chat.ControlChatAdminServices;
 import com.owl.chat_service.application.service.admin.chat.GetChatAdminServices;
 import com.owl.chat_service.application.service.admin.chat_member.GetChatMemberAdminServices;
+import com.owl.chat_service.application.service.event.AddMessageEvent;
+import com.owl.chat_service.application.service.event.EventEmitter;
 import com.owl.chat_service.domain.chat.service.ChatMemberServices;
 import com.owl.chat_service.domain.chat.service.MessageServices;
 import com.owl.chat_service.domain.chat.validate.MessageValidate;
@@ -33,19 +34,20 @@ public class ControlMessageAdminServices {
     private final MessageRepository messageRepository;
     private final GetChatAdminServices getChatAdminServices;
     private final GetMessageAdminServices getMessageAdminServices;
-    private final ControlChatAdminServices controlChatAdminService;
     private final GetChatMemberAdminServices getChatMemberAdminServices;
     private final UserServiceApiClient userServiceApiClient;
     private final BlockUserServiceApiClient blockUserServiceApiClient;
+    private final EventEmitter emitter;
 
-    public ControlMessageAdminServices(MessageRepository messageRepository, GetChatAdminServices getChatAdminServices, GetMessageAdminServices getMessageAdminServices, ControlChatAdminServices controlChatAdminService, GetChatMemberAdminServices getChatMemberAdminServices, UserServiceApiClient userServiceApiClient, BlockUserServiceApiClient blockUserServiceApiClient) {
+
+    public ControlMessageAdminServices(MessageRepository messageRepository, GetChatAdminServices getChatAdminServices, GetMessageAdminServices getMessageAdminServices, GetChatMemberAdminServices getChatMemberAdminServices, UserServiceApiClient userServiceApiClient, BlockUserServiceApiClient blockUserServiceApiClient, EventEmitter emitter) {
         this.messageRepository = messageRepository;
         this.getChatAdminServices = getChatAdminServices;
         this.getMessageAdminServices = getMessageAdminServices;
-        this.controlChatAdminService = controlChatAdminService;
         this.getChatMemberAdminServices = getChatMemberAdminServices;
         this.userServiceApiClient = userServiceApiClient;
         this.blockUserServiceApiClient = blockUserServiceApiClient;
+        this.emitter = emitter;
     }
 
     public Message addNewTextMessage(TextMessageAdminRequest textMessageRequest) {
@@ -107,7 +109,10 @@ public class ControlMessageAdminServices {
 
         messageRepository.save(newMessage);
 
-        controlChatAdminService.updateChatNewestMessage(newMessage);
+        AddMessageEvent event = new AddMessageEvent();
+        event.setMessage(newMessage);
+
+        emitter.emit(event);
 
         return newMessage;
     }
@@ -157,7 +162,10 @@ public class ControlMessageAdminServices {
 
         messageRepository.save(newMessage);
 
-        controlChatAdminService.updateChatNewestMessage(newMessage);
+        AddMessageEvent event = new AddMessageEvent();
+        event.setMessage(newMessage);
+
+        emitter.emit(event);
 
         return newMessage;
     }
@@ -233,7 +241,10 @@ public class ControlMessageAdminServices {
 
         messageRepository.save(existingMessage);
 
-        controlChatAdminService.updateChatNewestMessage(existingMessage);
+        AddMessageEvent event = new AddMessageEvent();
+        event.setMessage(existingMessage);
+
+        emitter.emit(event);
     }
 
     public void hardDeleteMessage(String messageId) {
@@ -312,8 +323,18 @@ public class ControlMessageAdminServices {
 
         messageRepository.save(newMessage);
 
-        controlChatAdminService.updateChatNewestMessage(newMessage);
+        AddMessageEvent event = new AddMessageEvent();
+        event.setMessage(newMessage);
+
+        emitter.emit(event);
 
         return newMessage;
+    }
+
+    public void deleteMessageByChatId(String chatId) {
+        if (chatId == null || chatId.isBlank())
+                throw new IllegalArgumentException("Chat ID cannot be null");
+        
+        messageRepository.deleteByChatId(chatId);
     }
 }

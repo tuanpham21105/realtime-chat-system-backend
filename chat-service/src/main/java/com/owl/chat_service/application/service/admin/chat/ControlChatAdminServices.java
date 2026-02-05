@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.owl.chat_service.application.service.admin.chat_member.ControlChatMemberAdminSerivces;
 import com.owl.chat_service.application.service.admin.chat_member.GetChatMemberAdminServices;
+import com.owl.chat_service.application.service.admin.message.ControlMessageAdminServices;
 import com.owl.chat_service.domain.chat.service.ChatServices;
 import com.owl.chat_service.domain.chat.validate.ChatValidate;
 import com.owl.chat_service.external_service.client.BlockUserServiceApiClient;
@@ -28,13 +29,16 @@ public class ControlChatAdminServices {
     private final ChatRepository chatRepository;
     private final GetChatMemberAdminServices getChatMemberAdminServices;
     private final BlockUserServiceApiClient blockUserServiceApiClient;
+    private final ControlMessageAdminServices controlMessageAdminServices;
 
-    public ControlChatAdminServices(ChatRepository chatRepository, GetChatAdminServices getChatAdminServices, ControlChatMemberAdminSerivces controlChatMemberAdminSerivces, BlockUserServiceApiClient blockUserServiceApiClient, GetChatMemberAdminServices getChatMemberAdminServices) {
+
+    public ControlChatAdminServices(ChatRepository chatRepository, GetChatAdminServices getChatAdminServices, ControlChatMemberAdminSerivces controlChatMemberAdminSerivces, BlockUserServiceApiClient blockUserServiceApiClient, GetChatMemberAdminServices getChatMemberAdminServices, ControlMessageAdminServices controlMessageAdminServices) {
         this.getChatAdminServices = getChatAdminServices;
         this.chatRepository = chatRepository;
         this.controlChatMemberAdminSerivces = controlChatMemberAdminSerivces;
         this.getChatMemberAdminServices = getChatMemberAdminServices;
         this.blockUserServiceApiClient = blockUserServiceApiClient;
+        this.controlMessageAdminServices = controlMessageAdminServices;
     }
 
     public Chat addNewChat(ChatAdminRequest chatRequest) {
@@ -171,11 +175,17 @@ public class ControlChatAdminServices {
         if (existingChat == null) 
             throw new IllegalArgumentException("Chat does not exists");
 
-        deleteChatAvatarFile(existingChat.getAvatar());
+        try {
+            deleteChatAvatarFile(existingChat.getAvatar());
+        } catch (Exception e) {
+            
+        }
 
         chatRepository.deleteById(Objects.requireNonNull(existingChat.getId(), "Delete chat is null"));
 
         controlChatMemberAdminSerivces.deleteChatMemberByChatId(chatId);
+
+        controlMessageAdminServices.deleteMessageByChatId(chatId);
     }
 
     public void updateChatNewestMessage(Message message) {

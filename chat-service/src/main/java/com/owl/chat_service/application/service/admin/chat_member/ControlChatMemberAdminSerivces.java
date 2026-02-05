@@ -43,13 +43,8 @@ public class ControlChatMemberAdminSerivces {
         if (!ChatMemberValidate.validateMemberId(chatMemberRequest.memberId)) 
             throw new IllegalArgumentException("Invalid member id");
 
-        try {
-            if (userServiceApiClient.getUserById(chatMemberRequest.memberId) == null) 
-                throw new IllegalArgumentException("Member not found");
-        }
-        catch (Exception e) {
-            throw new IllegalArgumentException(e.getMessage());
-        }
+        if (userServiceApiClient.getUserById(chatMemberRequest.memberId) == null) 
+            throw new IllegalArgumentException("Member not found");
 
         if (!ChatMemberValidate.validateChatId(chatMemberRequest.chatId)) 
             throw new IllegalArgumentException("Invalid chat id");
