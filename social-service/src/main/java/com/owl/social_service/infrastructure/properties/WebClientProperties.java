@@ -7,6 +7,15 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "external.service.api")
 public class WebClientProperties {
     private String user;
+    private String chat;
+
+    public String getChat() {
+        return chat;
+    }
+
+    public void setChat(String chat) {
+        this.chat = chat;
+    }
 
     public String getUser() {
         return user;

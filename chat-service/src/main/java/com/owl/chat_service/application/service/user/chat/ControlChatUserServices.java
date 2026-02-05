@@ -1,8 +1,9 @@
 package com.owl.chat_service.application.service.user.chat;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,16 +47,21 @@ public class ControlChatUserServices {
         
         if (!chatRequest.chatMembersId.contains(requesterId)) 
             chatRequest.chatMembersId.add(requesterId);
+
+        chatRequest.chatMembersId = new ArrayList<>(new HashSet<>(chatRequest.chatMembersId));
         
         if (chatRequest.chatMembersId.size() == 0) 
             throw new IllegalArgumentException("Chat member list is empty");
+        else if (chatRequest.chatMembersId.size() == 1) {
+            throw new IllegalArgumentException("Chat members must aleast 2");
+        }
         else if (chatRequest.chatMembersId.size() == 2) {
             request.type = "PRIVATE";       
 
-            Set<Chat> member1Chats = new HashSet<>(getChatUserServices.getChatsByMemberId(chatRequest.chatMembersId.get(0), null, -1, 0, true, "PRIVATE", null, null));
-            List<Chat> member2Chats = getChatUserServices.getChatsByMemberId(chatRequest.chatMembersId.get(1), null, -1, 0, true, "PRIVATE", null, null);
+            List<String> member1Chats = getChatUserServices.getChatsByMemberId(chatRequest.chatMembersId.get(0), null, -1, 0, true, "PRIVATE", null, null).stream().map(Chat::getId).collect(Collectors.toList());
+            List<String> member2Chats = getChatUserServices.getChatsByMemberId(chatRequest.chatMembersId.get(1), null, -1, 0, true, "PRIVATE", null, null).stream().map(Chat::getId).collect(Collectors.toList());
             
-            for (Chat chat : member2Chats) {
+            for (String chat : member2Chats) {
                 if (member1Chats.contains(chat)) {
                     throw new IllegalArgumentException("Private chat already exists");
                 }

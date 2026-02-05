@@ -1,5 +1,12 @@
-{"properties": [{
-  "name": "external.service.api.user",
-  "type": "java.lang.String",
-  "description": "A description for 'external.service.api.user'"
-}]}
+{"properties": [
+  {
+    "name": "external.service.api.user",
+    "type": "java.lang.String",
+    "description": "A description for 'external.service.api.user'"
+  },
+  {
+    "name": "external.service.api.chat",
+    "type": "java.lang.String",
+    "description": "A description for 'external.service.api.chat'"
+  }
+]}
