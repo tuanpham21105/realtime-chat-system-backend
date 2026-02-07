@@ -25,7 +25,7 @@ public class Message {
     private MessageState state;
 
     public enum MessageType {
-        CHAT_NOTIFICATION,
+        SYSTEM_MESSAGE,
         TEXT,
         IMG,
         VID,

@@ -13,6 +13,8 @@ import com.owl.chat_service.application.service.admin.chat.ControlChatAdminServi
 import com.owl.chat_service.application.service.admin.chat.GetChatAdminServices;
 import com.owl.chat_service.application.service.admin.chat_member.ControlChatMemberAdminSerivces;
 import com.owl.chat_service.application.service.admin.chat_member.GetChatMemberAdminServices;
+import com.owl.chat_service.application.service.event.EventEmitter;
+import com.owl.chat_service.application.service.event.SystemMessageEvent;
 import com.owl.chat_service.domain.chat.service.ChatMemberServices;
 import com.owl.chat_service.domain.chat.validate.ChatValidate;
 import com.owl.chat_service.persistence.mongodb.document.Chat;
@@ -32,14 +34,16 @@ public class ControlChatUserServices {
     private final ChatRepository chatRepository;
     private final GetChatMemberAdminServices getChatMemberAdminServices;
     private final GetChatUserServices getChatUserServices;
+    private final EventEmitter eventEmitter;
 
-    public ControlChatUserServices(ControlChatAdminServices controlChatAdminServices, ControlChatMemberAdminSerivces controlChatMemberAdminSerivces, GetChatAdminServices getChatAdminServices, ChatRepository chatRepository, GetChatMemberAdminServices getChatMemberAdminServices, GetChatUserServices getChatUserServices) {
+    public ControlChatUserServices(ControlChatAdminServices controlChatAdminServices, ControlChatMemberAdminSerivces controlChatMemberAdminSerivces, GetChatAdminServices getChatAdminServices, ChatRepository chatRepository, GetChatMemberAdminServices getChatMemberAdminServices, GetChatUserServices getChatUserServices, EventEmitter eventEmitter) {
         this.controlChatAdminServices = controlChatAdminServices;
         this.controlChatMemberAdminSerivces = controlChatMemberAdminSerivces;
         this.getChatAdminServices = getChatAdminServices;
         this.chatRepository = chatRepository;
         this.getChatMemberAdminServices = getChatMemberAdminServices;
         this.getChatUserServices = getChatUserServices;
+        this.eventEmitter = eventEmitter;
     }
 
     public Chat addNewChat(String requesterId, ChatUserRequest chatRequest) {
@@ -118,6 +122,11 @@ public class ControlChatUserServices {
             }
         }
 
+        SystemMessageEvent event = new SystemMessageEvent();
+        event.setChatId(newChat.getId());
+        event.setContent("Chat has been created");
+        eventEmitter.emit(event);
+
         return newChat;
     }
 
@@ -140,7 +149,14 @@ public class ControlChatUserServices {
 
         chat.setName(name);
 
-        return chatRepository.save(chat);
+        chatRepository.save(chat);
+
+        SystemMessageEvent event = new SystemMessageEvent();
+        event.setChatId(chat.getId());
+        event.setContent("Chat name has been updated to " + chat.getName());
+        eventEmitter.emit(event);
+
+        return chat;
     }
 
     public void deleteChat(String requesterId, String chatId) {
@@ -153,6 +169,11 @@ public class ControlChatUserServices {
             throw new SecurityException("Requester does not have permission to delete this chat");
 
         controlChatAdminServices.softDeleteChat(chatId);
+
+        SystemMessageEvent event = new SystemMessageEvent();
+        event.setChatId(chatId);
+        event.setContent("Chat name has been deleted");
+        eventEmitter.emit(event);
     }
     
     public void updateChatAvatarFile(String requesterId, String chatId, MultipartFile file) {
@@ -165,5 +186,10 @@ public class ControlChatUserServices {
             throw new SecurityException("Requester does not have permission to set this chat avatar");
 
         controlChatAdminServices.updateChatAvatarFile(chatId, file);
+
+        SystemMessageEvent event = new SystemMessageEvent();
+        event.setChatId(chatId);
+        event.setContent("Chat avatar has been updated");
+        eventEmitter.emit(event);
     }
 }
