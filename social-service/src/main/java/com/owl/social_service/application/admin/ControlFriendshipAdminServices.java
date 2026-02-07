@@ -70,6 +70,8 @@ public class ControlFriendshipAdminServices {
 
         emitter.emit(event);
 
+        
+
         return newFriendship;
     }
 
