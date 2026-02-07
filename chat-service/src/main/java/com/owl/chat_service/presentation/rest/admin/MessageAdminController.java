@@ -56,7 +56,7 @@ public class MessageAdminController {
         // removedDateEnd
         // createdDateStart
         // createdDateEnd
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getMessages(
         @RequestParam(required = false, defaultValue = "") String keywords,
         @RequestParam(required = false, defaultValue = "0") int page,
@@ -200,7 +200,7 @@ public class MessageAdminController {
             // chat id
             // content
             // senderId
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> postNewTextMessage(@RequestBody TextMessageAdminRequest textMessageRequest) {
         try {
             return ResponseEntity.ok().body(controlMessageAdminServices.addNewTextMessage(textMessageRequest));

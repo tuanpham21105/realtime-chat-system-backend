@@ -41,7 +41,7 @@ public class ChatMemberAdminController {
         // role
         // joinDateStart
         // joinDateEnd
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getChatMember(
         @RequestParam(required = false) String keywords,
         @RequestParam(required = false, defaultValue = "0") int page,
@@ -139,7 +139,7 @@ public class ChatMemberAdminController {
             // nickname
             // inviter id
             // join date
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> postChatMember(@RequestBody ChatMemberAdminRequest chatMemberCreateRequest) {
         try {
             return ResponseEntity.ok().body(controlChatMemberAdminSerivces.addNewChatMember(chatMemberCreateRequest));

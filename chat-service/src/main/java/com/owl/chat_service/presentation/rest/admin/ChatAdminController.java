@@ -47,7 +47,7 @@ public class ChatAdminController {
         // type
         // createdDateStart
         // createdDateEnd
-    @GetMapping("")
+    @GetMapping("/")
     public ResponseEntity<?> getChats(
         @RequestParam(required = false) String keywords,
         @RequestParam(required = false, defaultValue = "0") int page,
@@ -103,7 +103,7 @@ public class ChatAdminController {
     
     // post chat
         // chat create request
-    @PostMapping("")
+    @PostMapping("/")
     public ResponseEntity<?> postChat(@RequestBody ChatAdminRequest chatRequest) {
         try {
             return ResponseEntity.ok().body(controlChatAdminService.addNewChat(chatRequest));
