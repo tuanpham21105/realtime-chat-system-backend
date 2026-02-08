@@ -7,8 +7,11 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.owl.social_service.application.event.EventEmitter;
+import com.owl.social_service.application.event.NotifyEvent;
 import com.owl.social_service.domain.validate.FriendRequestValidate;
 import com.owl.social_service.external_service.client.UserServiceApiClient;
+import com.owl.social_service.external_service.dto.WsMessageDto;
 import com.owl.social_service.persistence.mongodb.document.FriendRequest;
 import com.owl.social_service.persistence.mongodb.document.Friendship;
 import com.owl.social_service.persistence.mongodb.document.FriendRequest.FriendRequestStatus;
@@ -25,14 +28,16 @@ public class ControlFriendRequestAdminServices {
     private final ControlFriendshipAdminServices controlFriendshipAdminServices;
     private final GetBlockAdminServices getBlockAdminServices;
     private final UserServiceApiClient userServiceApiClient;
+    private final EventEmitter emitter;
 
-    public ControlFriendRequestAdminServices(FriendRequestRepository friendRequestRepository, GetFriendRequestAdminServices getFriendRequestAdminServices, GetFriendshipAdminServices getFriendshipAdminServices, ControlFriendshipAdminServices controlFriendshipAdminServices, GetBlockAdminServices getBlockAdminServices, UserServiceApiClient userServiceApiClient) {
+    public ControlFriendRequestAdminServices(FriendRequestRepository friendRequestRepository, GetFriendRequestAdminServices getFriendRequestAdminServices, GetFriendshipAdminServices getFriendshipAdminServices, ControlFriendshipAdminServices controlFriendshipAdminServices, GetBlockAdminServices getBlockAdminServices, UserServiceApiClient userServiceApiClient, EventEmitter emitter) {
         this.friendRequestRepository = friendRequestRepository;
         this.getFriendRequestAdminServices = getFriendRequestAdminServices;
         this.getFriendshipAdminServices = getFriendshipAdminServices;
         this.controlFriendshipAdminServices = controlFriendshipAdminServices;
         this.getBlockAdminServices = getBlockAdminServices;
         this.userServiceApiClient = userServiceApiClient;
+        this.emitter = emitter;
     }
 
     public FriendRequest addNewFriendRequest(FriendRequestCreateRequest request) {
@@ -41,10 +46,10 @@ public class ControlFriendRequestAdminServices {
         if (request.senderId.trim().compareToIgnoreCase(request.receiverId.trim()) == 0) 
             throw new IllegalArgumentException("Invalid request");
 
-        if (userServiceApiClient.getUserById(request.senderId) != null) 
+        if (userServiceApiClient.getUserById(request.senderId) == null) 
             throw new IllegalArgumentException("Sender does not exists");
 
-        if (userServiceApiClient.getUserById(request.receiverId) != null) 
+        if (userServiceApiClient.getUserById(request.receiverId) == null) 
             throw new IllegalArgumentException("Receiver does not exists");
 
         if (existingFriendRequest.size() > 0) 
@@ -70,6 +75,12 @@ public class ControlFriendRequestAdminServices {
         newFriendRequest.setUpdatedDate(newFriendRequest.getCreatedDate());
 
         friendRequestRepository.save(newFriendRequest);
+
+        WsMessageDto message = new WsMessageDto("FRIEND-REQUEST", "CREATED", newFriendRequest);
+        NotifyEvent notifyEvent1 = new NotifyEvent("NOTIFY USER", newFriendRequest.getSenderId(), message);
+        emitter.emit(notifyEvent1);
+        NotifyEvent notifyEvent2 = new NotifyEvent("NOTIFY USER", newFriendRequest.getReceiverId(), message);
+        emitter.emit(notifyEvent2);
 
         return newFriendRequest;
     }
@@ -102,6 +113,12 @@ public class ControlFriendRequestAdminServices {
 
         friendRequestRepository.save(friendRequest);
 
+        WsMessageDto message = new WsMessageDto("FRIEND-REQUEST", "UPDATED", friendRequest);
+        NotifyEvent notifyEvent1 = new NotifyEvent("NOTIFY USER", friendRequest.getSenderId(), message);
+        emitter.emit(notifyEvent1);
+        NotifyEvent notifyEvent2 = new NotifyEvent("NOTIFY USER", friendRequest.getReceiverId(), message);
+        emitter.emit(notifyEvent2);
+
         return friendRequest;
         
     }
@@ -114,6 +131,12 @@ public class ControlFriendRequestAdminServices {
 
         if (friendRequest == null) 
             throw new IllegalArgumentException("Friend request not found");
+
+        WsMessageDto message = new WsMessageDto("FRIEND-REQUEST", "DELETED", friendRequest);
+        NotifyEvent notifyEvent1 = new NotifyEvent("NOTIFY USER", friendRequest.getSenderId(), message);
+        emitter.emit(notifyEvent1);
+        NotifyEvent notifyEvent2 = new NotifyEvent("NOTIFY USER", friendRequest.getReceiverId(), message);
+        emitter.emit(notifyEvent2);
 
         friendRequestRepository.deleteById(id);
     }

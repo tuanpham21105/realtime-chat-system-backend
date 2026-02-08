@@ -7,8 +7,11 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.owl.social_service.application.event.EventEmitter;
+import com.owl.social_service.application.event.NotifyEvent;
 import com.owl.social_service.domain.validate.FriendshipValidate;
 import com.owl.social_service.external_service.client.UserServiceApiClient;
+import com.owl.social_service.external_service.dto.WsMessageDto;
 import com.owl.social_service.persistence.mongodb.document.Block;
 import com.owl.social_service.persistence.mongodb.document.FriendRequest;
 import com.owl.social_service.persistence.mongodb.document.Friendship;
@@ -25,8 +28,9 @@ public class ControlBlockAdminServices {
     private final GetFriendshipAdminServices getFriendshipAdminServices;
     private final ControlFriendshipAdminServices controlFriendshipAdminServices;
     private final UserServiceApiClient userServiceApiClient;
+    private final EventEmitter emitter;
 
-    public ControlBlockAdminServices(BlockRepository blockRepository, GetBlockAdminServices getBlockAdminServices, GetFriendRequestAdminServices getFriendRequestAdminServices, ControlFriendRequestAdminServices controlFriendRequestAdminServices, ControlFriendshipAdminServices controlFriendshipAdminServices, GetFriendshipAdminServices getFriendshipAdminServices, UserServiceApiClient userServiceApiClient) {
+    public ControlBlockAdminServices(BlockRepository blockRepository, GetBlockAdminServices getBlockAdminServices, GetFriendRequestAdminServices getFriendRequestAdminServices, ControlFriendRequestAdminServices controlFriendRequestAdminServices, ControlFriendshipAdminServices controlFriendshipAdminServices, GetFriendshipAdminServices getFriendshipAdminServices, UserServiceApiClient userServiceApiClient, EventEmitter emitter) {
         this.blockRepository = blockRepository;
         this.getBlockAdminServices = getBlockAdminServices;
         this.getFriendRequestAdminServices = getFriendRequestAdminServices;
@@ -34,6 +38,7 @@ public class ControlBlockAdminServices {
         this.getFriendshipAdminServices = getFriendshipAdminServices;
         this.controlFriendshipAdminServices = controlFriendshipAdminServices;
         this.userServiceApiClient = userServiceApiClient;
+        this.emitter = emitter;
     }
 
     public Block addNewBlock(BlockCreateRequest request) {
@@ -43,10 +48,10 @@ public class ControlBlockAdminServices {
         if (!FriendshipValidate.validateUserId(request.blockedId))
             throw new IllegalArgumentException("Invalid blocked id");
 
-        if (userServiceApiClient.getUserById(request.blockerId) != null) 
+        if (userServiceApiClient.getUserById(request.blockerId) == null) 
             throw new IllegalArgumentException("Blocker does not exists");
 
-        if (userServiceApiClient.getUserById(request.blockedId) != null) 
+        if (userServiceApiClient.getUserById(request.blockedId) == null) 
             throw new IllegalArgumentException("Blocked does not exists");
 
         Block existingBlock = getBlockAdminServices.getUserBlockUser(request.blockerId, request.blockedId);
@@ -73,6 +78,12 @@ public class ControlBlockAdminServices {
 
         blockRepository.save(newBlock);
 
+        WsMessageDto message = new WsMessageDto("BLOCK", "CREATED", newBlock);
+        NotifyEvent notifyEvent1 = new NotifyEvent("NOTIFY USER", newBlock.getBlockerId(), message);
+        emitter.emit(notifyEvent1);
+        NotifyEvent notifyEvent2 = new NotifyEvent("NOTIFY USER", newBlock.getBlockedId(), message);
+        emitter.emit(notifyEvent2);
+
         return newBlock;
     }
 
@@ -84,6 +95,12 @@ public class ControlBlockAdminServices {
 
         if (existingBlock == null)
             throw new IllegalArgumentException("Block not found");
+
+        WsMessageDto message = new WsMessageDto("BLOCK", "DELETED", existingBlock);
+        NotifyEvent notifyEvent1 = new NotifyEvent("NOTIFY USER", existingBlock.getBlockerId(), message);
+        emitter.emit(notifyEvent1);
+        NotifyEvent notifyEvent2 = new NotifyEvent("NOTIFY USER", existingBlock.getBlockedId(), message);
+        emitter.emit(notifyEvent2);
 
         blockRepository.deleteById(id);
     }

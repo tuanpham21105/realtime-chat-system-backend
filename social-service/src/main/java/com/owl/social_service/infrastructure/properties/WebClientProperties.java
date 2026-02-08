@@ -8,6 +8,15 @@ import org.springframework.stereotype.Component;
 public class WebClientProperties {
     private String user;
     private String chat;
+    private String wsgateway;
+
+    public String getWsgateway() {
+        return wsgateway;
+    }
+
+    public void setWsgateway(String wsgateway) {
+        this.wsgateway = wsgateway;
+    }
 
     public String getChat() {
         return chat;

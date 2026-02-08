@@ -9,9 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.owl.social_service.application.event.CreateFriendshipEvent;
 import com.owl.social_service.application.event.EventEmitter;
+import com.owl.social_service.application.event.NotifyEvent;
 import com.owl.social_service.domain.validate.FriendshipValidate;
 import com.owl.social_service.external_service.client.UserServiceApiClient;
 import com.owl.social_service.external_service.dto.ChatCreateRequestDto;
+import com.owl.social_service.external_service.dto.WsMessageDto;
 import com.owl.social_service.persistence.mongodb.document.Friendship;
 import com.owl.social_service.persistence.mongodb.repository.FriendshipRepository;
 import com.owl.social_service.presentation.dto.FriendshipCreateRequest;
@@ -70,7 +72,11 @@ public class ControlFriendshipAdminServices {
 
         emitter.emit(event);
 
-        
+        WsMessageDto message = new WsMessageDto("FRIENDSHIP", "CREATED", newFriendship);
+        NotifyEvent notifyEvent1 = new NotifyEvent("NOTIFY USER", newFriendship.getFirstUserId(), message);
+        emitter.emit(notifyEvent1);
+        NotifyEvent notifyEvent2 = new NotifyEvent("NOTIFY USER", newFriendship.getSecondUserId(), message);
+        emitter.emit(notifyEvent2);
 
         return newFriendship;
     }
@@ -79,8 +85,15 @@ public class ControlFriendshipAdminServices {
         if (!FriendshipValidate.validateUserId(id))
             throw new IllegalArgumentException("Invalid id");
 
-        if (getFriendshipAdminServices.getFriendshipById(id) == null) 
+        Friendship existingFriendship = getFriendshipAdminServices.getFriendshipById(id);
+        if (existingFriendship == null) 
             throw new IllegalArgumentException("Friendship does not exists");
+
+        WsMessageDto message = new WsMessageDto("FRIENDSHIP", "DELETED", existingFriendship);
+        NotifyEvent notifyEvent1 = new NotifyEvent("NOTIFY USER", existingFriendship.getFirstUserId(), message);
+        emitter.emit(notifyEvent1);
+        NotifyEvent notifyEvent2 = new NotifyEvent("NOTIFY USER", existingFriendship.getSecondUserId(), message);
+        emitter.emit(notifyEvent2);
 
         friendshipRepository.deleteById(id);
     }
