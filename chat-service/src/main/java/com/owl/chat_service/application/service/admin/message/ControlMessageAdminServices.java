@@ -12,11 +12,13 @@ import com.owl.chat_service.application.service.admin.chat.GetChatAdminServices;
 import com.owl.chat_service.application.service.admin.chat_member.GetChatMemberAdminServices;
 import com.owl.chat_service.application.service.event.AddMessageEvent;
 import com.owl.chat_service.application.service.event.EventEmitter;
+import com.owl.chat_service.application.service.event.NotifyEvent;
 import com.owl.chat_service.domain.chat.service.ChatMemberServices;
 import com.owl.chat_service.domain.chat.service.MessageServices;
 import com.owl.chat_service.domain.chat.validate.MessageValidate;
 import com.owl.chat_service.external_service.client.BlockUserServiceApiClient;
 import com.owl.chat_service.external_service.client.UserServiceApiClient;
+import com.owl.chat_service.external_service.dto.WsMessageDto;
 import com.owl.chat_service.persistence.mongodb.document.Chat;
 import com.owl.chat_service.persistence.mongodb.document.ChatMember;
 import com.owl.chat_service.persistence.mongodb.document.Message;
@@ -114,6 +116,10 @@ public class ControlMessageAdminServices {
 
         emitter.emit(event);
 
+        WsMessageDto message = new WsMessageDto("MESSAGE", "CREATED", newMessage);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", newMessage.getChatId(), message);
+        emitter.emit(notifyEvent);
+
         return newMessage;
     }
 
@@ -167,6 +173,10 @@ public class ControlMessageAdminServices {
 
         emitter.emit(event);
 
+        WsMessageDto message = new WsMessageDto("MESSAGE", "UPDATED", newMessage);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", newMessage.getChatId(), message);
+        emitter.emit(notifyEvent);
+
         return newMessage;
     }
 
@@ -197,7 +207,10 @@ public class ControlMessageAdminServices {
         existingMessage.setStatus(true);
         existingMessage.setState(MessageState.ORIGIN);
         existingMessage.setRemovedDate(null);
-        
+
+        WsMessageDto message = new WsMessageDto("MESSAGE", "UPDATED", existingMessage);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingMessage.getChatId(), message);
+        emitter.emit(notifyEvent);
 
         return messageRepository.save(existingMessage);
     }
@@ -245,6 +258,10 @@ public class ControlMessageAdminServices {
         event.setMessage(existingMessage);
 
         emitter.emit(event);
+
+        WsMessageDto message = new WsMessageDto("MESSAGE", "UPDATED", existingMessage);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingMessage.getChatId(), message);
+        emitter.emit(notifyEvent);
     }
 
     public void hardDeleteMessage(String messageId) {
@@ -260,6 +277,10 @@ public class ControlMessageAdminServices {
         }
 
         messageRepository.deleteById(Objects.requireNonNull(messageId, "Message id cannot be null"));
+
+        WsMessageDto message = new WsMessageDto("MESSAGE", "DELETED", existingMessage);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingMessage.getChatId(), message);
+        emitter.emit(notifyEvent);
     }
 
     public Message addNewFileMessage(FileMessageAdminRequest fileMessageRequest) {
@@ -328,6 +349,10 @@ public class ControlMessageAdminServices {
 
         emitter.emit(event);
 
+        WsMessageDto message = new WsMessageDto("MESSAGE", "CREATED", newMessage);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", newMessage.getChatId(), message);
+        emitter.emit(notifyEvent);
+
         return newMessage;
     }
 
@@ -337,6 +362,7 @@ public class ControlMessageAdminServices {
         
         messageRepository.deleteByChatId(chatId);
     }
+    
     public Message addNewSystemMessage(String chatId, String content) {
         if (!MessageValidate.validateChatId(chatId)) {
             throw new IllegalArgumentException("Invalid chat id");
@@ -372,7 +398,10 @@ public class ControlMessageAdminServices {
 
         emitter.emit(event);
 
+        WsMessageDto message = new WsMessageDto("MESSAGE", "CREATED", newMessage);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", newMessage.getChatId(), message);
+        emitter.emit(notifyEvent);
+
         return newMessage;
     }
-
 }

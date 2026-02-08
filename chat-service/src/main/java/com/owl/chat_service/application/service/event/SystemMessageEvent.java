@@ -13,6 +13,11 @@ public class SystemMessageEvent extends Event {
         this.chatId = chatId;
     }
     private String content;
+    public SystemMessageEvent(String name, String chatId, String content) {
+        super(name);
+        this.chatId = chatId;
+        this.content = content;
+    }
     public String getContent() {
         return content;
     }

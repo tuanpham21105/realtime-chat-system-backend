@@ -8,6 +8,13 @@ import org.springframework.stereotype.Component;
 public class ExternalServicesURL {
     private String user;
     private String social;
+    private String wsgateway;
+    public String getWsgateway() {
+        return wsgateway;
+    }
+    public void setWsgateway(String wsgateway) {
+        this.wsgateway = wsgateway;
+    }
     public String getUser() {
         return user;
     }

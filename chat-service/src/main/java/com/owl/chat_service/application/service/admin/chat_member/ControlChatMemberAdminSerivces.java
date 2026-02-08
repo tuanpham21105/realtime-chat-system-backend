@@ -9,10 +9,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.owl.chat_service.application.service.admin.chat.GetChatAdminServices;
+import com.owl.chat_service.application.service.event.EventEmitter;
+import com.owl.chat_service.application.service.event.NotifyEvent;
 import com.owl.chat_service.domain.chat.service.ChatMemberServices;
 import com.owl.chat_service.domain.chat.validate.ChatMemberValidate;
 import com.owl.chat_service.external_service.client.BlockUserServiceApiClient;
 import com.owl.chat_service.external_service.client.UserServiceApiClient;
+import com.owl.chat_service.external_service.dto.WsMessageDto;
 import com.owl.chat_service.persistence.mongodb.document.Chat;
 import com.owl.chat_service.persistence.mongodb.document.ChatMember;
 import com.owl.chat_service.persistence.mongodb.document.Chat.ChatType;
@@ -29,13 +32,15 @@ public class ControlChatMemberAdminSerivces {
     private final GetChatMemberAdminServices getChatMemberAdminServices;
     private final GetChatAdminServices getChatAdminServices;
     private final UserServiceApiClient userServiceApiClient;
+    private final EventEmitter emitter;
 
-    public ControlChatMemberAdminSerivces(ChatMemberRepository chatMemberRepository, GetChatMemberAdminServices getChatMemberAdminServices, GetChatAdminServices getChatAdminServices, UserServiceApiClient userServiceApiClient, BlockUserServiceApiClient blockUserServiceApiClient) {
+    public ControlChatMemberAdminSerivces(ChatMemberRepository chatMemberRepository, GetChatMemberAdminServices getChatMemberAdminServices, GetChatAdminServices getChatAdminServices, UserServiceApiClient userServiceApiClient, BlockUserServiceApiClient blockUserServiceApiClient, EventEmitter emitter) {
         this.chatMemberRepository = chatMemberRepository;
         this.getChatMemberAdminServices = getChatMemberAdminServices;
         this.getChatAdminServices = getChatAdminServices;
         this.userServiceApiClient = userServiceApiClient;
-        this.blockUserServiceApiClient = blockUserServiceApiClient;}
+        this.blockUserServiceApiClient = blockUserServiceApiClient;
+        this.emitter = emitter;}
 
     public ChatMember addNewChatMember(ChatMemberAdminRequest chatMemberRequest) {
         ChatMember newChatMember = new ChatMember();
@@ -102,6 +107,10 @@ public class ControlChatMemberAdminSerivces {
         newChatMember.setInviterId(chatMemberRequest.inviterId);
         newChatMember.setJoinDate(Instant.now());
 
+        WsMessageDto message = new WsMessageDto("CHAT-MEMBER", "CREATED", newChatMember);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", newChatMember.getChatId(), message);
+        emitter.emit(notifyEvent);
+
         return chatMemberRepository.save(newChatMember);
     }
 
@@ -145,6 +154,10 @@ public class ControlChatMemberAdminSerivces {
         existingChatMember.setInviterId(chatMemberRequest.inviterId);
         existingChatMember.setJoinDate(Instant.now());
 
+        WsMessageDto message = new WsMessageDto("CHAT-MEMBER", "UPDATED", existingChatMember);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChatMember.getChatId(), message);
+        emitter.emit(notifyEvent);
+
         return chatMemberRepository.save(existingChatMember);
     }
 
@@ -173,6 +186,10 @@ public class ControlChatMemberAdminSerivces {
         else 
             existingChatMember.setRole(ChatMemberRole.valueOf(role));
 
+        WsMessageDto message = new WsMessageDto("CHAT-MEMBER", "UPDATED", existingChatMember);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChatMember.getChatId(), message);
+        emitter.emit(notifyEvent);
+
         return chatMemberRepository.save(existingChatMember);
     }
 
@@ -192,6 +209,10 @@ public class ControlChatMemberAdminSerivces {
         //     throw new IllegalArgumentException("Invalid nickname");
 
         existingChatMember.setNickname(nickname.trim());
+
+        WsMessageDto message = new WsMessageDto("CHAT-MEMBER", "UPDATED", existingChatMember);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChatMember.getChatId(), message);
+        emitter.emit(notifyEvent);
 
         return chatMemberRepository.save(existingChatMember);
     }
@@ -219,6 +240,10 @@ public class ControlChatMemberAdminSerivces {
             throw new IllegalArgumentException("Chat owner cannot leave chat");
 
         chatMemberRepository.deleteById(Objects.requireNonNull(existingChatMember.getId(), "Delete chat member id is null"));
+
+        WsMessageDto message = new WsMessageDto("CHAT-MEMBER", "DELETED", existingChatMember);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChatMember.getChatId(), message);
+        emitter.emit(notifyEvent);
     }
 
     public void deleteChatMemberByChatId(String chatId) {

@@ -3,6 +3,13 @@ package com.owl.chat_service.application.service.event;
 public class Event {
     private String name;
 
+    public Event() {
+    }
+
+    public Event(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }

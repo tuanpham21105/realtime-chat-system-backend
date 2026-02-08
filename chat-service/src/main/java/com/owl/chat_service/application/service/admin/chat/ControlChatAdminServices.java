@@ -11,9 +11,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.owl.chat_service.application.service.admin.chat_member.ControlChatMemberAdminSerivces;
 import com.owl.chat_service.application.service.admin.chat_member.GetChatMemberAdminServices;
 import com.owl.chat_service.application.service.admin.message.ControlMessageAdminServices;
+import com.owl.chat_service.application.service.event.EventEmitter;
+import com.owl.chat_service.application.service.event.NotifyEvent;
 import com.owl.chat_service.domain.chat.service.ChatServices;
 import com.owl.chat_service.domain.chat.validate.ChatValidate;
 import com.owl.chat_service.external_service.client.BlockUserServiceApiClient;
+import com.owl.chat_service.external_service.dto.WsMessageDto;
 import com.owl.chat_service.persistence.mongodb.document.Chat;
 import com.owl.chat_service.persistence.mongodb.document.Message;
 import com.owl.chat_service.persistence.mongodb.document.Chat.ChatType;
@@ -30,15 +33,16 @@ public class ControlChatAdminServices {
     private final GetChatMemberAdminServices getChatMemberAdminServices;
     private final BlockUserServiceApiClient blockUserServiceApiClient;
     private final ControlMessageAdminServices controlMessageAdminServices;
+    private final EventEmitter emitter;
 
-
-    public ControlChatAdminServices(ChatRepository chatRepository, GetChatAdminServices getChatAdminServices, ControlChatMemberAdminSerivces controlChatMemberAdminSerivces, BlockUserServiceApiClient blockUserServiceApiClient, GetChatMemberAdminServices getChatMemberAdminServices, ControlMessageAdminServices controlMessageAdminServices) {
+    public ControlChatAdminServices(ChatRepository chatRepository, GetChatAdminServices getChatAdminServices, ControlChatMemberAdminSerivces controlChatMemberAdminSerivces, BlockUserServiceApiClient blockUserServiceApiClient, GetChatMemberAdminServices getChatMemberAdminServices, ControlMessageAdminServices controlMessageAdminServices, EventEmitter emitter) {
         this.getChatAdminServices = getChatAdminServices;
         this.chatRepository = chatRepository;
         this.controlChatMemberAdminSerivces = controlChatMemberAdminSerivces;
         this.getChatMemberAdminServices = getChatMemberAdminServices;
         this.blockUserServiceApiClient = blockUserServiceApiClient;
         this.controlMessageAdminServices = controlMessageAdminServices;
+        this.emitter = emitter;
     }
 
     public Chat addNewChat(ChatAdminRequest chatRequest) {
@@ -58,6 +62,10 @@ public class ControlChatAdminServices {
         newChat.setInitiatorId(chatRequest.initiatorId);
         newChat.setCreatedDate(Instant.now());
         newChat.setUpdatedDate(newChat.getCreatedDate());
+
+        WsMessageDto message = new WsMessageDto("CHAT", "CREATED", newChat);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", newChat.getId(), message);
+        emitter.emit(notifyEvent);
 
         return chatRepository.save(newChat);
     }
@@ -101,6 +109,10 @@ public class ControlChatAdminServices {
         existingChat.setInitiatorId(chatRequest.initiatorId);
         existingChat.setUpdatedDate(Instant.now());
 
+        WsMessageDto message = new WsMessageDto("CHAT", "UPDATED", existingChat);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChat.getId(), message);
+        emitter.emit(notifyEvent);
+
         return chatRepository.save(existingChat);
     }
 
@@ -130,6 +142,10 @@ public class ControlChatAdminServices {
 
         existingChat.setStatus(status);
         existingChat.setUpdatedDate(Instant.now());
+
+        WsMessageDto message = new WsMessageDto("CHAT", "UPDATED", existingChat);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChat.getId(), message);
+        emitter.emit(notifyEvent);
 
         return chatRepository.save(existingChat);
     }
@@ -163,6 +179,10 @@ public class ControlChatAdminServices {
 
         updateChatStatus(chatId, false);
 
+        WsMessageDto message = new WsMessageDto("CHAT", "UPDATED", existingChat);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChat.getId(), message);
+        emitter.emit(notifyEvent);
+
         controlChatMemberAdminSerivces.deleteChatMemberByChatId(chatId);
     }
 
@@ -180,6 +200,10 @@ public class ControlChatAdminServices {
         } catch (Exception e) {
             
         }
+
+        WsMessageDto message = new WsMessageDto("CHAT", "DELETED", existingChat);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChat.getId(), message);
+        emitter.emit(notifyEvent);
 
         chatRepository.deleteById(Objects.requireNonNull(existingChat.getId(), "Delete chat is null"));
 
@@ -254,6 +278,10 @@ public class ControlChatAdminServices {
         existingChat.setAvatar(ChatServices.saveChatAvatarFile(file));
 
         chatRepository.save(existingChat);
+
+        WsMessageDto message = new WsMessageDto("CHAT", "UPDATED", existingChat);
+        NotifyEvent notifyEvent = new NotifyEvent("NOTIFY CHAT", existingChat.getId(), message);
+        emitter.emit(notifyEvent);
     }
 
     public void deleteChatAvatarFile(String avatarFileName) {
