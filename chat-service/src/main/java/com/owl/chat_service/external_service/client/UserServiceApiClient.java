@@ -2,24 +2,29 @@ package com.owl.chat_service.external_service.client;
 
 import java.time.Duration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.owl.chat_service.external_service.dto.UserProfileDto;
-import com.owl.chat_service.infrastructure.properties.ExternalServicesURL;
+import com.owl.chat_service.infrastructure.properties.ExternalServicesProperties;
 
 import reactor.core.publisher.Mono;
 
 @Component
 public class UserServiceApiClient {
+    @Value("${intenal-api-key}")
+    private String internalApiKey;
+    
     private final WebClient webClient;
 
-    public UserServiceApiClient(WebClient.Builder builder, ExternalServicesURL properties) {
+    public UserServiceApiClient(WebClient.Builder builder, ExternalServicesProperties properties) {
         webClient = builder.baseUrl(properties.getUser()).build();
     }
 
     public UserProfileDto getUserById(String id) {
         return webClient.get().uri("/user/" + id)
+            .header("X-Internal-Api-Key", internalApiKey)
             .exchangeToMono(response -> {
                 if (response == null)
                     return Mono.empty();

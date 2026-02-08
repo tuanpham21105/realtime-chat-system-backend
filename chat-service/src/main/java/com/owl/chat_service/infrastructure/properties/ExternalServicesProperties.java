@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix = "external.service.api")
-public class ExternalServicesURL {
+public class ExternalServicesProperties {
     private String user;
     private String social;
     private String wsgateway;

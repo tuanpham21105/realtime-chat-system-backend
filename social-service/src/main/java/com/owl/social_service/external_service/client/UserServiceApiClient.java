@@ -2,6 +2,7 @@ package com.owl.social_service.external_service.client;
 
 import java.time.Duration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -12,6 +13,9 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class UserServiceApiClient {
+    @Value("${intenal-api-key}")
+    private String internalApiKey;
+
     private final WebClient webClient;
 
     public UserServiceApiClient(WebClient.Builder builder, WebClientProperties properties) {
@@ -20,6 +24,7 @@ public class UserServiceApiClient {
 
     public UserProfileDto getUserById(String id) {
         return webClient.get().uri("/user/" + id)
+            .header("X-Internal-Api-Key", internalApiKey)
             .exchangeToMono(response -> {
                 if (response == null)
                     return Mono.empty();

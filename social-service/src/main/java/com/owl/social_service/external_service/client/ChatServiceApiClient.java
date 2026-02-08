@@ -2,6 +2,7 @@ package com.owl.social_service.external_service.client;
 
 import java.time.Duration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -13,6 +14,9 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class ChatServiceApiClient {
+    @Value("${intenal-api-key}")
+    private String internalApiKey;
+
     private final WebClient webClient;
 
     public ChatServiceApiClient(WebClient.Builder builder, WebClientProperties webClientProperties) {
@@ -23,6 +27,7 @@ public class ChatServiceApiClient {
         return webClient.post() // 1. Changed to POST for creation
             .uri("/chat")
             .header("requesterId", requesterId)
+            .header("X-Internal-Api-Key", internalApiKey)
             .bodyValue(chatCreateRequestDto) // 2. This adds your DTO as the JSON body
             .exchangeToMono(response -> {
                 if (response == null)
