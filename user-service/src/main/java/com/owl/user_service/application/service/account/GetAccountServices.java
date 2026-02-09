@@ -12,7 +12,6 @@ import com.owl.user_service.infrastructure.utils.KeywordUtils;
 import com.owl.user_service.persistence.jpa.entity.Account;
 import com.owl.user_service.persistence.jpa.repository.AccountJpaRepository;
 import com.owl.user_service.persistence.jpa.specification.AccountSpecifications;
-import com.owl.user_service.presentation.dto.request.SignInRequestDto;
 
 @Service
 public class GetAccountServices {
@@ -56,20 +55,5 @@ public class GetAccountServices {
         else {
             return accountRepository.findById(id).orElse(null);
         }
-    }
-
-    public Account signIn(SignInRequestDto request) {
-        Account account = accountRepository.findByUsername(request.username).orElse(null);
-
-        if (account == null) 
-            throw new IllegalArgumentException("Account does not exists");
-
-        if (!account.getStatus())
-            throw new IllegalArgumentException("Account is inactive");
-
-        if (account.getPassword().compareTo(request.password) != 0) 
-            throw new SecurityException("Wrong password");
-
-        return account;
     }
 }

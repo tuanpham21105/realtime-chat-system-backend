@@ -3,7 +3,6 @@ package com.owl.user_service.presentation.rest;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.owl.user_service.application.service.account.GetAccountServices;
 import com.owl.user_service.application.service.auth.ControlAuthenticationServices;
 import com.owl.user_service.application.service.user_profile.ControlUserProfileServices;
 import com.owl.user_service.presentation.dto.request.SignInRequestDto;
@@ -14,25 +13,24 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
     private final ControlAuthenticationServices controlAuthenticationServices;
-    private final GetAccountServices getAccountServices;
     private final ControlUserProfileServices controlUserProfileServices;
 
-    public AuthenticationController(ControlAuthenticationServices controlAuthenticationServices, GetAccountServices getAccountServices, ControlUserProfileServices controlUserProfileServices) {
+    public AuthenticationController(ControlAuthenticationServices controlAuthenticationServices, ControlUserProfileServices controlUserProfileServices) {
         this.controlAuthenticationServices = controlAuthenticationServices;
-        this.getAccountServices = getAccountServices;
         this.controlUserProfileServices = controlUserProfileServices;
     }
 
     @PostMapping("/signin")
     public ResponseEntity<?> signIn(@RequestBody SignInRequestDto request) {
         try {
-            return ResponseEntity.ok(getAccountServices.signIn(request));
+            return ResponseEntity.ok(controlAuthenticationServices.signIn(request));
         }
         catch (Exception ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
@@ -73,4 +71,16 @@ public class AuthenticationController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PostMapping("/access/refresh")
+    public ResponseEntity<?> refreshAccessToken(@CookieValue(value = "refresh-token") String refreshToken) {
+        try 
+        {
+            return ResponseEntity.ok().body(controlAuthenticationServices.refreshAccessToken(refreshToken));  
+        }
+        catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
 }
