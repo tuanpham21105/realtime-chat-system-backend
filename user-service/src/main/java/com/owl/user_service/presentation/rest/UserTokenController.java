@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.owl.user_service.application.jwt.JwtTokenService;
+import com.owl.user_service.presentation.dto.response.ValidateAccessTokenResponseDto;
 
 import io.jsonwebtoken.Claims;
 
@@ -22,7 +23,14 @@ public class UserTokenController {
     }
 
     @PostMapping("/access")
-    public ResponseEntity<Claims> validateAccessToken(@CookieValue String accessToken) {
-        return ResponseEntity.ok(jwtTokenService.validateAccessToken(accessToken));
+    public ResponseEntity<ValidateAccessTokenResponseDto> validateAccessToken(@CookieValue String accessToken) {
+        Claims claims = jwtTokenService.validateAccessToken(accessToken);
+
+        ValidateAccessTokenResponseDto response = new ValidateAccessTokenResponseDto();
+
+        response.userId = claims.getSubject();
+        response.role = claims.get("role", String.class);
+
+        return ResponseEntity.ok(response);
     }
 }
