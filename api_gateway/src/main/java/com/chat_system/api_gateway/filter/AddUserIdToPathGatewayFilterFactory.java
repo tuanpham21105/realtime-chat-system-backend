@@ -23,7 +23,7 @@ public class AddUserIdToPathGatewayFilterFactory extends AbstractGatewayFilterFa
 
         return (exchange, chain) -> {
 
-            String userId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
+            String userId = exchange.getAttributeOrDefault("X-User-Id", null);
 
             if (userId == null || userId.isBlank()) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
