@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -63,6 +64,17 @@ public class UserProfileController {
         try 
         {
             return ResponseEntity.ok(getUserProfileService.getUserProfileById(id));    
+        }
+        catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getRequesterProfile(@RequestHeader(value = "X-User-Id") String requesterId) {
+        try 
+        {
+            return ResponseEntity.ok(getUserProfileService.getUserProfileById(requesterId));    
         }
         catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

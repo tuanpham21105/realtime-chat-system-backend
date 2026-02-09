@@ -34,7 +34,7 @@ public class GetMessageAdminServices {
                 return messageWithCriteriaRepository.findAll(criteria, Sort.by(ascSort ? Sort.Direction.ASC : Sort.Direction.DESC, "createdDate"));
         }
 
-        Pageable pageable = PagintaionCriteria.PagableCriteria(page, size, ascSort, "joinDate");
+        Pageable pageable = PagintaionCriteria.PagableCriteria(page, size, ascSort, "createdDate");
 
         if (criteria == null) 
             return messageWithCriteriaRepository.findAll(pageable);
