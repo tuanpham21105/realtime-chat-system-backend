@@ -10,10 +10,15 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 @Component
 public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
+    private final ValidateAccessTokenInterceptor validateAccessTokenInterceptor;
+
+    public WebSocketHandshakeInterceptor(ValidateAccessTokenInterceptor validateAccessTokenInterceptor) {
+        this.validateAccessTokenInterceptor = validateAccessTokenInterceptor;
+    }
 
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
-        String requesterId = request.getHeaders().getFirst("X-User-Id");
+        String requesterId = validateAccessTokenInterceptor.validateAccessToken(request.getHeaders().getFirst("Authorization")).userId;
 
         // Allow connection even without requesterId, but store it if provided
         if (requesterId != null) {

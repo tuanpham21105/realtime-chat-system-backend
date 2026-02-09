@@ -1,5 +1,12 @@
-{"properties": [{
-  "name": "internal-api-key",
-  "type": "java.lang.String",
-  "description": "A description for 'internal-api-key'"
-}]}
+{"properties": [
+  {
+    "name": "internal-api-key",
+    "type": "java.lang.String",
+    "description": "A description for 'internal-api-key'"
+  },
+  {
+    "name": "external.service.api.user",
+    "type": "java.lang.String",
+    "description": "A description for 'external.service.api.user'"
+  }
+]}
