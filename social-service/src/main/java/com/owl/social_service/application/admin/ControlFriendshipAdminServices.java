@@ -70,7 +70,12 @@ public class ControlFriendshipAdminServices {
 
         CreateFriendshipEvent event = new CreateFriendshipEvent("CREATE FRIENDSHIP", newFriendship.getFirstUserId(), chatCreateRequestDto);
 
-        emitter.emit(event);
+        try {
+            emitter.emit(event);
+        }
+        catch (Exception e) {
+            
+        }
 
         WsMessageDto message = new WsMessageDto("FRIENDSHIP", "CREATED", newFriendship);
         NotifyEvent notifyEvent1 = new NotifyEvent("NOTIFY USER", newFriendship.getFirstUserId(), message);

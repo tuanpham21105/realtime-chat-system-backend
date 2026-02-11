@@ -84,7 +84,7 @@ public class ChatMemberCriteria {
 
         // member id 
         if (memberId != null && !memberId.isEmpty()) {
-            criteriaList.add(Criteria.where("memberId").regex(memberId, "i"));
+            criteriaList.add(Criteria.where("memberId").is(memberId));
         }
 
         Criteria criteria = FindAllChatMembersWithCriteria(idSearch, keywords, role, joindDateStart, joinDateEnd);
@@ -107,7 +107,7 @@ public class ChatMemberCriteria {
 
         // chat id 
         if (chatId != null && !chatId.isEmpty()) {
-            criteriaList.add(Criteria.where("chatId").regex(chatId, "i"));
+            criteriaList.add(Criteria.where("chatId").is(chatId));
         }
 
         Criteria criteria = FindAllChatMembersWithCriteria(idSearch, keywords, role, joindDateStart, joinDateEnd);

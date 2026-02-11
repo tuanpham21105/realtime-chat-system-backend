@@ -3,6 +3,7 @@ package com.owl.chat_service.application.service.user.chat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -62,7 +63,7 @@ public class ControlChatUserServices {
         else if (chatRequest.chatMembersId.size() == 2) {
             request.type = "PRIVATE";       
 
-            List<String> member1Chats = getChatUserServices.getChatsByMemberId(chatRequest.chatMembersId.get(0), null, -1, 0, true, "PRIVATE", null, null).stream().map(Chat::getId).collect(Collectors.toList());
+            Set<String> member1Chats = getChatUserServices.getChatsByMemberId(chatRequest.chatMembersId.get(0), null, -1, 0, true, "PRIVATE", null, null).stream().map(Chat::getId).collect(Collectors.toSet());
             List<String> member2Chats = getChatUserServices.getChatsByMemberId(chatRequest.chatMembersId.get(1), null, -1, 0, true, "PRIVATE", null, null).stream().map(Chat::getId).collect(Collectors.toList());
             
             for (String chat : member2Chats) {

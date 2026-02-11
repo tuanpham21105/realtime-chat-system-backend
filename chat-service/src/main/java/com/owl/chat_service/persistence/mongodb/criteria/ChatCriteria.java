@@ -2,6 +2,7 @@ package com.owl.chat_service.persistence.mongodb.criteria;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -96,7 +97,9 @@ public class ChatCriteria {
         // id in list
         if (!idsList.isEmpty())
             criteriaList.add(Criteria.where("_id").in(idsList));
-
+        else 
+            return Criteria.where("_id").in(Collections.emptyList());
+        
         // keyword search (name)
         if (keywords != null && !keywords.isBlank()) {
             List<Criteria> keywordsCriteriaList = new ArrayList<Criteria>();
